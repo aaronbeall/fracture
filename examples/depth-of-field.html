@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Fracture — depth of field</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: #18202c;
+        color: #f4f6fb;
+        font:
+          15px/1.5 system-ui,
+          sans-serif;
+      }
+      header {
+        position: relative;
+        z-index: 1;
+        padding: 24px;
+        background: #111822;
+      }
+      h1 {
+        margin: 0 0 8px;
+        font-size: 22px;
+      }
+      p {
+        margin: 8px 0;
+      }
+      a {
+        color: #9bd9ff;
+      }
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 24px;
+        align-items: center;
+        margin-top: 16px;
+      }
+      label {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      :focus-visible {
+        outline: 2px solid #ffcb70;
+        outline-offset: 4px;
+      }
+      button {
+        font: inherit;
+        padding: 4px 12px;
+      }
+      main {
+        padding: 48px 8%;
+        color: #b6c3d5;
+      }
+      main p {
+        border-bottom: 1px solid #526174;
+        padding: 24px 0;
+      }
+      canvas {
+        position: fixed;
+        inset: 0;
+        width: 100vw;
+        height: 100vh;
+        pointer-events: none;
+      }
+      output {
+        font-variant-numeric: tabular-nums;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Depth of field</h1>
+      <p>
+        The left card stays on the focus plane. Move and rotate the right card
+        to examine its silhouette, text, and bright dots.
+      </p>
+      <a href="./playground.html">Open fracture playground</a>
+      <div class="controls">
+        <label
+          >Distance toward camera
+          <input
+            id="distance"
+            type="range"
+            min="-400"
+            max="650"
+            value="300"
+            step="1"
+          /><output id="distance-value">300 px</output></label
+        >
+        <label
+          >Rotation
+          <input id="angle" type="range" min="0" max="180" value="35" step="1"
+        /></label>
+        <label><input id="animate" type="checkbox" /> Animate rotation</label>
+        <output id="status" aria-live="polite">Loading renderer…</output>
+      </div>
+    </header>
+    <main>
+      <p>This is live DOM text behind the transparent WebGL overlay.</p>
+      <p>The page stays sharp as a foreground silhouette spreads over it.</p>
+      <p>
+        Small highlights should form filled disks, with no disconnected copies.
+      </p>
+      <p>Use the rotation control to check the thin edge of a shard.</p>
+    </main>
+    <script type="module">
+      import { Mesh } from "three";
+      import {
+        FractureRenderer,
+        makeGeometry,
+        makeMaterials,
+      } from "../src/renderer.ts";
+      const status = document.querySelector("#status");
+      window.addEventListener(
+        "error",
+        (event) => (status.textContent = event.message),
+      );
+      const originalError = console.error;
+      console.error = (...args) => {
+        status.textContent = args.join(" ");
+        originalError(...args);
+      };
+      const renderer = new FractureRenderer();
+      document.body.append(renderer.renderer.domElement);
+      const canvas = document.createElement("canvas");
+      canvas.width = 260;
+      canvas.height = 170;
+      const context = canvas.getContext("2d");
+      context.fillStyle = "#0b5572";
+      context.fillRect(0, 0, 260, 170);
+      context.strokeStyle = "#66d9ff";
+      context.lineWidth = 2;
+      context.strokeRect(1, 1, 258, 168);
+      context.fillStyle = "white";
+      context.font = "bold 26px system-ui";
+      context.fillText("FRACTURE", 20, 44);
+      context.font = "14px system-ui";
+      context.fillText("Thin lens • circular aperture", 20, 72);
+      for (let i = 0; i < 6; i++) {
+        context.beginPath();
+        context.arc(24 + i * 40, 110, 2, 0, Math.PI * 2);
+        context.fill();
+      }
+      context.fillStyle = "#ffc668";
+      context.fillRect(20, 144, 220, 2);
+      const snapshot = {
+        canvas,
+        left: 0,
+        top: 0,
+        width: 260,
+        height: 170,
+        pixels: context.getImageData(0, 0, 260, 170).data,
+      };
+      const geometry = makeGeometry(
+        [
+          { x: 0, y: 0 },
+          { x: 260, y: 0 },
+          { x: 260, y: 170 },
+          { x: 0, y: 170 },
+        ],
+        0.6,
+        snapshot,
+      );
+      const material = makeMaterials(snapshot);
+      const focused = new Mesh(geometry, material.materials);
+      const moving = new Mesh(geometry, material.materials);
+      renderer.scene.add(focused, moving);
+      const distance = document.querySelector("#distance");
+      const angle = document.querySelector("#angle");
+      const animate = document.querySelector("#animate");
+      let frames = 0,
+        last = performance.now(),
+        fps = 0;
+      function frame(now) {
+        const z = Number(distance.value),
+          projection = (1000 - z) / 1000;
+        focused.position.set(innerWidth * 0.26, -innerHeight * 0.61, 0);
+        // Hold the projected center steady while depth and perspective change.
+        moving.position.set(
+          innerWidth / 2 + innerWidth * 0.22 * projection,
+          -innerHeight / 2 - innerHeight * 0.11 * projection,
+          z,
+        );
+        moving.rotation.set(
+          0.2,
+          animate.checked
+            ? now * 0.0006
+            : (Number(angle.value) * Math.PI) / 180,
+          -0.12,
+        );
+        renderer.draw();
+        document.querySelector("#distance-value").textContent = `${z} px`;
+        if (++frames && now - last > 1000) {
+          fps = Math.round((frames * 1000) / (now - last));
+          frames = 0;
+          last = now;
+        }
+        if (!status.textContent.includes("Error"))
+          status.textContent = `${fps} fps`;
+        requestAnimationFrame(frame);
+      }
+      window.addEventListener("resize", () => renderer.resize());
+      window.addEventListener("pagehide", () => renderer.dispose());
+      requestAnimationFrame(frame);
+    </script>
+  </body>
+</html>

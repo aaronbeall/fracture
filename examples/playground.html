@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Fracture Lens — playground</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: #edf1f6;
+        color: #18334a;
+        font:
+          16px/1.5 system-ui,
+          sans-serif;
+      }
+      header {
+        background: #153b58;
+        color: white;
+        padding: 24px 40px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      main {
+        max-width: 1120px;
+        margin: 34px auto;
+        padding: 0 24px;
+      }
+      h1 {
+        font-size: 26px;
+        margin: 0;
+      }
+      h2 {
+        margin: 0 0 12px;
+      }
+      p {
+        margin: 6px 0 18px;
+      }
+      button,
+      input {
+        font: inherit;
+        border-radius: 6px;
+        padding: 10px 16px;
+      }
+      button {
+        color: white;
+        background: #167b91;
+        border: 1px solid #096878;
+        cursor: pointer;
+      }
+      input {
+        border: 1px solid #a3b5c5;
+        width: 330px;
+      }
+      :focus-visible {
+        outline: 3px solid #f29924;
+        outline-offset: 3px;
+      }
+      form {
+        display: flex;
+        align-items: end;
+        gap: 12px;
+        margin-bottom: 28px;
+      }
+      label {
+        display: grid;
+        gap: 6px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 24px;
+      }
+      .card {
+        background: white;
+        border: 1px solid #c8d5e0;
+        padding: 24px;
+        border-radius: 12px;
+        box-shadow: 0 6px 24px #18334a0b;
+      }
+      .hero {
+        height: 330px;
+        background: linear-gradient(130deg, #107a9c, #2554a3 65%, #6133a2);
+        color: white;
+        overflow: hidden;
+      }
+      .hero strong {
+        font-size: 64px;
+      }
+      .hero p {
+        max-width: 340px;
+      }
+      .rows {
+        margin-top: 24px;
+      }
+      .row {
+        padding: 14px 4px;
+        border-bottom: 1px solid #d9e3ec;
+        display: flex;
+        justify-content: space-between;
+      }
+      .badge {
+        background: #d3eee6;
+        color: #1f684e;
+        border-radius: 20px;
+        padding: 2px 12px;
+      }
+      svg {
+        width: 100%;
+        height: 150px;
+        display: block;
+      }
+      output {
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Fracture Lens</h1>
+      <span>A little parting gift.</span>
+      <a href="./inspector.html" style="color: white"
+        >Fracture inspector</a
+      >
+    </header>
+    <main>
+      <form id="activate-form">
+        <button type="submit">Activate Fracture</button>
+        <output id="status" aria-live="polite">Ready</output>
+      </form>
+      <p>
+        Click a surface to shatter it. Click flying shards to break them again.
+        Each click affects only the surface or shard you hit. + / - speeds up or
+        slows down time immediately after activation. Tab to a control and press
+        Enter or Space to shatter it. F fires at the pointer. Escape restores
+        everything.
+      </p>
+      <div class="grid">
+        <section class="card hero" aria-label="Large gradient surface">
+          <h2>Portfolio overview</h2>
+          <strong>$42.8M</strong>
+          <p>
+            Click the open space on this card for a large radial fracture. Its
+            text and gradient travel with the pieces.
+          </p>
+        </section>
+        <section class="card">
+          <h2>Impact by quarter</h2>
+          <svg
+            viewBox="0 0 280 150"
+            role="img"
+            aria-label="Quarterly impact chart"
+          >
+            <path d="M10 135H270" stroke="#a2b5c6" />
+            <rect x="24" y="70" width="40" height="65" fill="#239eaa" />
+            <rect x="87" y="40" width="40" height="95" fill="#267ac0" />
+            <rect x="150" y="15" width="40" height="120" fill="#4b55b6" />
+            <rect x="213" y="55" width="40" height="80" fill="#8664bd" />
+          </svg>
+          <button id="normal-action">Ordinary action</button>
+          <output id="action-count">0 actions</output>
+        </section>
+      </div>
+      <section class="card rows" aria-label="Projects">
+        <h2>Projects</h2>
+        <div class="row">
+          <span>Platform modernization</span><span class="badge">Approved</span>
+        </div>
+        <div class="row">
+          <span>Better decisions, fewer spreadsheets</span
+          ><span class="badge">In progress</span>
+        </div>
+        <div class="row">
+          <a href="#navigation-test">Navigation test</a
+          ><button id="small-action">Small surface</button>
+        </div>
+      </section>
+    </main>
+    <script type="module">
+      let count = 0;
+      window.addEventListener(
+        "keydown",
+        (event) => {
+          if (event.key === "Escape")
+            document.querySelector("#status").textContent = "Ready";
+        },
+        true,
+      );
+      document.querySelector("#normal-action").addEventListener("click", () => {
+        document.querySelector("#action-count").textContent =
+          `${++count} actions`;
+      });
+      document
+        .querySelector("#activate-form")
+        .addEventListener("submit", async (event) => {
+          event.preventDefault();
+          try {
+            const { setup } = await import("../src/index.ts");
+            await setup();
+            document.querySelector("#status").textContent =
+              "Active — Escape to restore";
+          } catch (error) {
+            document.querySelector("#status").textContent = String(error);
+          }
+        });
+    </script>
+  </body>
+</html>

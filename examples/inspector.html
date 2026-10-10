@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Fracture Lens — fracture inspector</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: #eef2f6;
+        color: #18334a;
+        font:
+          15px/1.5 system-ui,
+          sans-serif;
+      }
+      main {
+        max-width: 1180px;
+        margin: auto;
+        padding: 28px 32px;
+      }
+      header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+      }
+      h1 {
+        margin: 0;
+        font-size: 27px;
+        letter-spacing: -0.7px;
+      }
+      h2 {
+        font-size: 15px;
+        margin: 0 0 8px;
+      }
+      p {
+        margin: 6px 0 20px;
+      }
+      a {
+        color: #12657d;
+      }
+      .eyebrow {
+        color: #526678;
+        font-size: 11px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+      }
+      .controls {
+        display: flex;
+        align-items: end;
+        gap: 14px;
+        flex-wrap: wrap;
+        margin: 20px 0;
+      }
+      label {
+        display: grid;
+        gap: 5px;
+        font-size: 13px;
+      }
+      input,
+      select,
+      button {
+        font: inherit;
+      }
+      input[type="number"],
+      select,
+      .action {
+        border: 1px solid #a5b6c5;
+        border-radius: 6px;
+        padding: 8px 12px;
+        background: white;
+        color: inherit;
+      }
+      input[type="number"] {
+        width: 110px;
+      }
+      button {
+        cursor: pointer;
+      }
+      .action {
+        background: #183d53;
+        color: white;
+        border-color: #183d53;
+      }
+      .secondary {
+        background: white;
+        color: #183d53;
+      }
+      .toggle {
+        display: flex;
+        align-items: center;
+        align-self: center;
+        gap: 8px;
+      }
+      :focus-visible {
+        outline: 3px solid #bf5700;
+        outline-offset: 4px;
+      }
+      .stage {
+        border: 1px solid #c8d3dd;
+        border-radius: 10px;
+        padding: 22px;
+        background: #e0e7ee;
+        overflow: auto;
+      }
+      #sample {
+        display: block;
+        position: relative;
+        margin: auto;
+        padding: 0;
+        width: min(100%, var(--sample-width, 960px));
+        height: var(--sample-height, 440px);
+        border: 0;
+        border-radius: 0;
+        background: #10283f;
+        color: white;
+        cursor: crosshair;
+      }
+      #sample .placeholder {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-content: center;
+        gap: 6px;
+        pointer-events: none;
+      }
+      #sample.has-pattern .placeholder {
+        display: none;
+      }
+      .placeholder strong {
+        font-size: 26px;
+        font-weight: 500;
+      }
+      .placeholder span {
+        opacity: 0.8;
+      }
+      #pattern {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+      #pattern polygon {
+        vector-effect: non-scaling-stroke;
+        stroke-width: 0.85;
+      }
+      #pattern polygon.selected {
+        stroke: white;
+        stroke-width: 2;
+      }
+      .below {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 28px;
+        margin-top: 20px;
+      }
+      .legend-bar {
+        height: 10px;
+        border-radius: 3px;
+        background: linear-gradient(
+          90deg,
+          #254c98,
+          #19b9be,
+          #f5d44d,
+          #f47730,
+          #ca2941
+        );
+      }
+      .legend-labels {
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
+        margin: 4px 0 10px;
+        color: #43596c;
+      }
+      .muted {
+        color: #526678;
+        font-size: 13px;
+      }
+      #summary {
+        display: block;
+        margin: 14px 0 0;
+        font-variant-numeric: tabular-nums;
+      }
+      #piece {
+        width: 100%;
+        margin: 10px 0;
+      }
+      #details {
+        min-height: 48px;
+        font:
+          12px/1.65 ui-monospace,
+          monospace;
+        white-space: pre-line;
+      }
+      details {
+        margin-top: 16px;
+        font-size: 13px;
+      }
+      pre {
+        white-space: pre-wrap;
+        background: white;
+        padding: 12px;
+        border: 1px solid #c8d3dd;
+        border-radius: 6px;
+      }
+      @media (max-width: 700px) {
+        main {
+          padding: 20px 16px;
+        }
+        .below {
+          grid-template-columns: 1fr;
+          gap: 14px;
+        }
+        .stage {
+          padding: 12px;
+        }
+        header {
+          align-items: start;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <div>
+          <div class="eyebrow">Fracture Lens / temporary rig</div>
+          <h1>Fracture inspector</h1>
+        </div>
+        <a href="./playground.html">Animated playground ↗</a>
+      </header>
+      <p id="instructions">
+        Click the sample to freeze its fracture pattern and initial force. Arrow
+        keys move the impact by 10px; Enter or Space fractures at the current
+        point.
+      </p>
+      <div class="controls">
+        <label
+          >Sample size<select id="size">
+            <option value="960,440">Large card · 960 × 440</option>
+            <option value="640,320">Medium card · 640 × 320</option>
+            <option value="960,140">Wide strip · 960 × 140</option>
+            <option value="180,64">Small button · 180 × 64</option>
+          </select></label
+        >
+        <label
+          >Random seed<input
+            id="seed"
+            type="number"
+            min="0"
+            max="4294967295"
+            step="1"
+            value="17"
+        /></label>
+        <button id="new-seed" class="action" type="button">New pattern</button>
+        <button id="clear" class="action secondary" type="button">Clear</button>
+        <label class="toggle"
+          ><input id="heatmap" type="checkbox" checked /> Fill force
+          colors</label
+        >
+      </div>
+      <div class="stage">
+        <button
+          id="sample"
+          type="button"
+          aria-label="Fracture sample"
+          aria-describedby="instructions"
+        >
+          <span class="placeholder" aria-hidden="true"
+            ><strong>Click to fracture</strong
+            ><span>The pattern stays still.</span></span
+          >
+          <svg id="pattern" aria-hidden="true"></svg>
+        </button>
+      </div>
+      <output id="summary" aria-live="polite"
+        >Ready. Each click replaces the previous pattern.</output
+      >
+      <div class="below">
+        <section aria-labelledby="legend-heading">
+          <h2 id="legend-heading">Initial force · resulting 3D speed</h2>
+          <div class="legend-bar" aria-hidden="true"></div>
+          <div class="legend-labels">
+            <span>0 · weak</span><span id="legend-mid"></span
+            ><span id="legend-max"></span>
+          </div>
+          <div class="muted">
+            Includes center-directed bias, distance falloff, random variation,
+            spiral, and camera-directed force. Fixed scale in px/s of simulation
+            time, capped at the production speed limit.
+          </div>
+        </section>
+        <section aria-labelledby="piece-heading">
+          <h2 id="piece-heading">Inspect a piece</h2>
+          <label for="piece"
+            >Hover a fragment, or use the slider and arrow keys.</label
+          >
+          <input id="piece" type="range" min="1" max="1" value="1" disabled />
+          <output id="details" for="piece"
+            >Click the sample to inspect pieces.</output
+          >
+        </section>
+      </div>
+      <details>
+        <summary>Current tuning &amp; repeatability</summary>
+        <p>
+          The seed stays fixed until you change it. Edit
+          <code>src/tuning.ts</code> or the fracture algorithm,
+          then refresh. The inspector imports the same production functions; the
+          values below are read directly from the module.
+        </p>
+        <pre id="tuning"></pre>
+      </details>
+    </main>
+    <script type="module" src="./inspector.ts"></script>
+  </body>
+</html>
