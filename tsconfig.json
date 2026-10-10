@@ -18,6 +18,7 @@
     "src",
     "examples/**/*.ts",
     "examples/**/*.tsx",
-    "vite.config.ts"
+    "vite.config.ts",
+    "vite.*.config.ts"
   ]
 }
