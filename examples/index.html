@@ -1,14 +1,109 @@
 <!doctype html>
 <html lang="en">
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Fracture examples</title>
-  <style>body { max-width:720px; margin:64px auto; padding:24px; font:18px/1.6 system-ui; color:#18334a; background:#edf1f6; } a { color:#075d91; }</style>
-  <h1>Fracture</h1>
-  <p>DOM surfaces, radial cracks, slow motion, and soft depth blur.</p>
-  <ul>
-    <li><a href="./playground.html">Playground</a> — activate and shatter real DOM.</li>
-    <li><a href="./inspector.html">Fracture inspector</a> — inspect patterns and forces.</li>
-    <li><a href="./react.html">React keyboard trigger</a> — sequence activation and cleanup.</li>
-  </ul>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Fracture</title>
+    <link rel="stylesheet" href="./site.css" />
+    <style>
+      .card {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        text-decoration: none;
+        color: inherit;
+        transition: transform 0.15s ease;
+      }
+      .card:hover {
+        transform: translateY(-2px);
+        border-color: var(--accent);
+      }
+      .card h2 {
+        font-size: 20px;
+      }
+      .card .go {
+        color: var(--accent);
+        font-weight: 600;
+        text-decoration: none;
+      }
+      .card p {
+        margin: 0 0 auto;
+        padding-bottom: 8px;
+      }
+      .hero-actions {
+        margin: 28px 0 8px;
+      }
+      footer {
+        margin-top: 48px;
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Fracture <span class="trip">your UI.</span></h1>
+      <p class="lede">
+        Ever wanted to fracture your UI into a million pieces and watch the bits
+        beautifully disperse as if in a hallucinogenic trance? Good news, that's
+        my specialty, and now you can too!
+      </p>
+      <div class="row hero-actions">
+        <button id="everything">Fracture this page</button>
+        <span class="muted"
+          >Then click anything. <kbd>+</kbd>/<kbd>-</kbd> change speed,
+          <kbd>Esc</kbd> puts it all back.</span
+        >
+      </div>
+
+      <div class="grid">
+        <a class="panel card" href="./inspector.html">
+          <h2>The algorithm</h2>
+          <p class="muted">
+            Pure geometry: a polygon and an impact point in, convex shards out.
+            Inspect patterns, seeds and blast forces.
+          </p>
+          <span class="go">Fracture inspector →</span>
+        </a>
+        <a class="panel card" href="./precise.html">
+          <h2>Precision fracturing</h2>
+          <p class="muted">
+            Break a specific modal, card or toast on cue with
+            <code>fracture()</code> or the <code>useFracture()</code> hook.
+          </p>
+          <span class="go">React demo →</span>
+        </a>
+        <div class="panel card">
+          <h2>Fracture everything</h2>
+          <p class="muted">
+            Every visible element is breakable. Hide it behind a secret phrase,
+            the Konami code, or a shortcut.
+          </p>
+          <a class="go" href="./playground.html">Playground →</a>
+          <a class="go" href="./easter-egg.html">React easter egg →</a>
+        </div>
+        <a class="panel card" href="./anywhere.html">
+          <h2>Fracture the internet</h2>
+          <p class="muted">
+            A browser extension and bookmarklet that make any site you visit
+            destructible.
+          </p>
+          <span class="go">Get it →</span>
+        </a>
+      </div>
+
+      <footer class="muted">
+        <a href="https://github.com/aaronbeall/fracture">GitHub</a> ·
+        <a href="https://www.npmjs.com/package/@abeall/fracture">npm</a> ·
+        <a href="./depth-of-field.html">Depth-of-field rig</a>
+      </footer>
+    </main>
+    <script type="module">
+      document
+        .querySelector("#everything")
+        .addEventListener("click", async () => {
+          const { fractureEverything } = await import("../src/easter-egg.ts");
+          await fractureEverything();
+        });
+    </script>
+  </body>
 </html>

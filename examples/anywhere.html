@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Fracture anything</title>
+    <link rel="stylesheet" href="./site.css" />
+    <style>
+      section {
+        margin: 24px 0;
+      }
+      .bookmarklet {
+        font-size: 18px;
+        padding: 12px 22px;
+        cursor: grab;
+      }
+      ol {
+        padding-left: 20px;
+      }
+      li {
+        margin: 6px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="crumbs"><a href="./index.html">Fracture</a> / anywhere</div>
+      <h1>Fracture <span class="trip">the internet</span></h1>
+      <p class="lede">
+        Okay, you love fracturing things as much as I do. Here's how to break
+        every site you ever come across.
+      </p>
+
+      <section class="panel">
+        <h2>Browser extension</h2>
+        <p class="muted">
+          Click the toolbar button (or press
+          <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>F</kbd>) on any page, then click
+          things. Press it again or hit <kbd>Esc</kbd> to put the page back. It
+          only runs when you ask, and only on the tab you ask it to.
+        </p>
+        <p>
+          <a class="button" id="zip" href="./fracture-anything.zip"
+            >Download extension (.zip)</a
+          >
+        </p>
+        <ol>
+          <li>Unzip it somewhere permanent.</li>
+          <li>
+            <strong>Chrome, Edge, Brave, Arc:</strong> open
+            <code>chrome://extensions</code>, turn on Developer mode, choose
+            <em>Load unpacked</em>, and select the unzipped folder.
+          </li>
+          <li>
+            <strong>Firefox:</strong> open <code>about:debugging</code> → This
+            Firefox → <em>Load Temporary Add-on</em>, and select
+            <code>manifest.json</code>.
+          </li>
+        </ol>
+      </section>
+
+      <section class="panel">
+        <h2>Bookmarklet</h2>
+        <p class="muted">
+          Drag this to your bookmarks bar. Click it on any page to start; click
+          again to stop.
+        </p>
+        <p>
+          <a class="button bookmarklet" id="bookmarklet" href="#"
+            >💥 Fracture</a
+          >
+        </p>
+        <p class="muted">
+          Some sites (GitHub, banks, most big apps) forbid outside scripts with
+          a Content Security Policy, and the bookmarklet silently does nothing
+          there. The extension isn't affected.
+        </p>
+      </section>
+
+      <section class="panel">
+        <h2>Try it here</h2>
+        <div class="row">
+          <button id="try">Fracture this page</button>
+          <span class="muted">Escape restores it.</span>
+        </div>
+      </section>
+    </main>
+    <script type="module">
+      const script = import.meta.env.DEV
+        ? new URL("/dist/fracture-anywhere.js", location.href)
+        : new URL("./fracture-anywhere.js", location.href);
+      const code = `(()=>{const s=document.createElement("script");s.src=${JSON.stringify(script.href)};s.onload=()=>s.remove();document.documentElement.append(s)})()`;
+      document.querySelector("#bookmarklet").href = `javascript:${code}`;
+      document.querySelector("#bookmarklet").addEventListener("click", (e) => {
+        e.preventDefault();
+        alert("Drag this button to your bookmarks bar.");
+      });
+      document.querySelector("#try").addEventListener("click", async () => {
+        const { fractureEverything } = await import("../src/easter-egg.ts");
+        await fractureEverything({ hud: { storageKey: null } });
+      });
+    </script>
+  </body>
+</html>

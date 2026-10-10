@@ -31,7 +31,9 @@
     "test": "vitest run",
     "build": "tsc --noEmit && vite build && vite build -c vite.anywhere.config.ts && tsc -p tsconfig.build.json",
     "build:extension": "npm run build && node scripts/build-extension.mjs",
-    "prepack": "npm run build"
+    "prepack": "npm run build",
+    "build:site": "npm run build:extension && vite build -c vite.site.config.ts && node scripts/build-site.mjs",
+    "preview:site": "vite preview -c vite.site.config.ts --host 127.0.0.1 --port 4180"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",

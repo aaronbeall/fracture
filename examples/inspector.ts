@@ -1,20 +1,24 @@
-// Development-only rig. Import the production algorithm instead of maintaining a preview copy.
+// Uses the public algorithm entry, exactly as a consumer would.
 import {
   area,
   center,
   contains,
+  DEFAULT_FRACTURE_PARAMS,
+  DEFAULT_IMPULSE_PARAMS,
   fracture,
+  impactBias,
+  rectangle,
+  sampleImpulse,
+  seededRandom,
   type Point,
   type Polygon,
-} from "../src/fracture";
-import { impactBias, sampleImpulse } from "../src/impulse";
-import { DEFAULT_FRACTURE_PARAMS, DEFAULT_IMPULSE_PARAMS } from "../src/params";
-import { DEFAULT_MOTION_PARAMS as FRACTURE_TUNING } from "../src/params";
+} from "../src/algorithm";
+import { DEFAULT_MOTION_PARAMS } from "../src/params";
 
 const tuning = {
   ...DEFAULT_FRACTURE_PARAMS,
   ...DEFAULT_IMPULSE_PARAMS,
-  ...FRACTURE_TUNING,
+  ...DEFAULT_MOTION_PARAMS,
 };
 
 function element<T extends Element>(selector: string): T {
@@ -47,14 +51,6 @@ let fragments: Fragment[] = [];
 let selected: SVGPolygonElement | undefined;
 
 // One stream per click: fracture first, then one impulse per fragment, as in the effect.
-function random(seedValue: number) {
-  let state = seedValue >>> 0;
-  return () => {
-    state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
-    return state / 4294967296;
-  };
-}
-
 const colors = [
   [37, 76, 152],
   [25, 185, 190],
@@ -99,13 +95,8 @@ function draw() {
   const { width, height } = sample.getBoundingClientRect();
   const hit = { x: impact.x * width, y: impact.y * height };
   const bias = impactBias(hit, width, height);
-  const source: Polygon = [
-    { x: 0, y: 0 },
-    { x: width, y: 0 },
-    { x: width, y: height },
-    { x: 0, y: height },
-  ];
-  const rng = random(seed.valueAsNumber);
+  const source = rectangle(width, height);
+  const rng = seededRandom(seed.valueAsNumber);
   const pieces = fracture(source, hit, { random: rng });
   const nodes = document.createDocumentFragment();
   selected = undefined;

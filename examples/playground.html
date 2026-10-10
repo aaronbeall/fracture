@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Fracture Lens — playground</title>
+    <title>Fracture everything — playground</title>
     <style>
       * {
         box-sizing: border-box;
@@ -120,17 +120,18 @@
   </head>
   <body>
     <header>
-      <h1>Fracture Lens</h1>
-      <span>A little parting gift.</span>
-      <a href="./inspector.html" style="color: white"
-        >Fracture inspector</a
-      >
+      <h1>Fracture everything</h1>
+      <a href="./index.html" style="color: white">All demos</a>
     </header>
     <main>
       <form id="activate-form">
         <button type="submit">Activate Fracture</button>
         <output id="status" aria-live="polite">Ready</output>
       </form>
+      <p>
+        Or use a trigger: the Konami code (↑ ↑ ↓ ↓ ← → ← → B A), type
+        <em>break it all</em>, or click the header five times.
+      </p>
       <p>
         Click a surface to shatter it. Click flying shards to break them again.
         Each click affects only the surface or shard you hit. + / - speeds up or
@@ -180,15 +181,17 @@
       </section>
     </main>
     <script type="module">
+      import {
+        fractureEverything,
+        installEasterEgg,
+      } from "../src/easter-egg.ts";
+
+      const status = document.querySelector("#status");
+      const options = {
+        onFracture: () => (status.textContent = "Active — Escape to restore"),
+        onExit: () => (status.textContent = "Ready"),
+      };
       let count = 0;
-      window.addEventListener(
-        "keydown",
-        (event) => {
-          if (event.key === "Escape")
-            document.querySelector("#status").textContent = "Ready";
-        },
-        true,
-      );
       document.querySelector("#normal-action").addEventListener("click", () => {
         document.querySelector("#action-count").textContent =
           `${++count} actions`;
@@ -198,14 +201,20 @@
         .addEventListener("submit", async (event) => {
           event.preventDefault();
           try {
-            const { setup } = await import("../src/index.ts");
-            await setup();
-            document.querySelector("#status").textContent =
-              "Active — Escape to restore";
+            await fractureEverything(options);
+            status.textContent = "Active — Escape to restore";
           } catch (error) {
-            document.querySelector("#status").textContent = String(error);
+            status.textContent = String(error);
           }
         });
+      installEasterEgg({
+        ...options,
+        triggers: [
+          "konami",
+          { sequence: "break it all" },
+          { clicks: 5, target: "header" },
+        ],
+      });
     </script>
   </body>
 </html>
