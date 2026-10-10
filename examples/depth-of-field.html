@@ -3,62 +3,32 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Fracture — depth of field</title>
+    <title>Depth-of-field rig · Fracture</title>
+    <link rel="stylesheet" href="./site.css" />
     <style>
-      * {
-        box-sizing: border-box;
-      }
-      body {
-        margin: 0;
-        background: #18202c;
-        color: #f4f6fb;
-        font:
-          15px/1.5 system-ui,
-          sans-serif;
-      }
-      header {
-        position: relative;
-        z-index: 1;
-        padding: 24px;
-        background: #111822;
-      }
-      h1 {
-        margin: 0 0 8px;
-        font-size: 22px;
-      }
-      p {
-        margin: 8px 0;
-      }
-      a {
-        color: #9bd9ff;
-      }
       .controls {
         display: flex;
         flex-wrap: wrap;
-        gap: 24px;
+        gap: 20px;
         align-items: center;
-        margin-top: 16px;
+        font-size: 14px;
       }
-      label {
+      .controls label {
         display: flex;
         gap: 8px;
         align-items: center;
       }
-      :focus-visible {
-        outline: 2px solid #ffcb70;
-        outline-offset: 4px;
+      .backdrop {
+        margin-top: 24px;
+        padding: 24px 32px;
+        border-radius: var(--radius);
+        background: #14161c;
+        color: #b9c0cc;
       }
-      button {
-        font: inherit;
-        padding: 4px 12px;
-      }
-      main {
-        padding: 48px 8%;
-        color: #b6c3d5;
-      }
-      main p {
-        border-bottom: 1px solid #526174;
-        padding: 24px 0;
+      .backdrop p {
+        border-bottom: 1px solid #2c313b;
+        padding: 20px 0;
+        margin: 0;
       }
       canvas {
         position: fixed;
@@ -69,18 +39,30 @@
       }
       output {
         font-variant-numeric: tabular-nums;
+        color: var(--muted);
       }
     </style>
   </head>
   <body>
-    <header>
-      <h1>Depth of field</h1>
-      <p>
+    <header class="site-header">
+      <div class="inner">
+        <nav class="crumbs" aria-label="Breadcrumb">
+          <a href="./index.html">Fracture</a><span class="sep">/</span
+          ><span aria-current="page">Depth-of-field rig</span>
+        </nav>
+        <nav class="links">
+          <a href="https://github.com/aaronbeall/fracture">GitHub</a>
+          <a href="https://www.npmjs.com/package/@abeall/fracture">npm</a>
+        </nav>
+      </div>
+    </header>
+    <main>
+      <h1>Depth-of-field rig</h1>
+      <p class="lede">
         The left card stays on the focus plane. Move and rotate the right card
         to examine its silhouette, text, and bright dots.
       </p>
-      <a href="./playground.html">Open fracture playground</a>
-      <div class="controls">
+      <div class="panel controls">
         <label
           >Distance toward camera
           <input
@@ -99,14 +81,15 @@
         <label><input id="animate" type="checkbox" /> Animate rotation</label>
         <output id="status" aria-live="polite">Loading renderer…</output>
       </div>
-    </header>
-    <main>
-      <p>This is live DOM text behind the transparent WebGL overlay.</p>
-      <p>The page stays sharp as a foreground silhouette spreads over it.</p>
-      <p>
-        Small highlights should form filled disks, with no disconnected copies.
-      </p>
-      <p>Use the rotation control to check the thin edge of a shard.</p>
+      <div class="backdrop">
+        <p>This is live DOM text behind the transparent WebGL overlay.</p>
+        <p>The page stays sharp as a foreground silhouette spreads over it.</p>
+        <p>
+          Small highlights should form filled disks, with no disconnected
+          copies.
+        </p>
+        <p>Use the rotation control to check the thin edge of a shard.</p>
+      </div>
     </main>
     <script type="module">
       import { Mesh } from "three";

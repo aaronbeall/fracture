@@ -3,15 +3,15 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Fracture anything</title>
+    <title>Fracture the internet · Fracture</title>
     <link rel="stylesheet" href="./site.css" />
     <style>
       section {
-        margin: 24px 0;
+        margin: 16px 0;
       }
       .bookmarklet {
-        font-size: 18px;
-        padding: 12px 22px;
+        font-size: 15px;
+        padding: 12px 20px;
         cursor: grab;
       }
       ol {
@@ -23,9 +23,20 @@
     </style>
   </head>
   <body>
+    <header class="site-header">
+      <div class="inner">
+        <nav class="crumbs" aria-label="Breadcrumb">
+          <a href="./index.html">Fracture</a><span class="sep">/</span
+          ><span aria-current="page">Fracture the internet</span>
+        </nav>
+        <nav class="links">
+          <a href="https://github.com/aaronbeall/fracture">GitHub</a>
+          <a href="https://www.npmjs.com/package/@abeall/fracture">npm</a>
+        </nav>
+      </div>
+    </header>
     <main>
-      <div class="crumbs"><a href="./index.html">Fracture</a> / anywhere</div>
-      <h1>Fracture <span class="trip">the internet</span></h1>
+      <h1>Fracture the internet</h1>
       <p class="lede">
         Okay, you love fracturing things as much as I do. Here's how to break
         every site you ever come across.
@@ -66,9 +77,7 @@
           again to stop.
         </p>
         <p>
-          <a class="button bookmarklet" id="bookmarklet" href="#"
-            >💥 Fracture</a
-          >
+          <a class="button bookmarklet" id="bookmarklet" href="#">Fracture</a>
         </p>
         <p class="muted">
           Some sites (GitHub, banks, most big apps) forbid outside scripts with
@@ -86,11 +95,19 @@
       </section>
     </main>
     <script type="module">
-      const script = import.meta.env.DEV
-        ? new URL("/dist/fracture-anywhere.js", location.href)
-        : new URL("./fracture-anywhere.js", location.href);
-      const code = `(()=>{const s=document.createElement("script");s.src=${JSON.stringify(script.href)};s.onload=()=>s.remove();document.documentElement.append(s)})()`;
-      document.querySelector("#bookmarklet").href = `javascript:${code}`;
+      // Dev loads the source as a module, cache-busted so each run re-executes and toggles.
+      async function bookmarklet() {
+        if (!import.meta.env.DEV) {
+          const url = new URL("./fracture-anywhere.js", location.href);
+          return `(()=>{const s=document.createElement("script");s.src=${JSON.stringify(url.href)};s.onload=()=>s.remove();document.documentElement.append(s)})()`;
+        }
+        const { default: path } = await import("../src/anywhere.ts?url");
+        const url = new URL(path, location.href);
+        return `(()=>{const s=document.createElement("script");s.type="module";s.src=${JSON.stringify(url.href + "?t=")}+Date.now();s.onload=()=>s.remove();document.documentElement.append(s)})()`;
+      }
+      void bookmarklet().then((code) => {
+        document.querySelector("#bookmarklet").href = `javascript:${code}`;
+      });
       document.querySelector("#bookmarklet").addEventListener("click", (e) => {
         e.preventDefault();
         alert("Drag this button to your bookmarks bar.");

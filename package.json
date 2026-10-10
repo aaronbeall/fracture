@@ -60,7 +60,7 @@
     "access": "public"
   },
   "scripts": {
-    "dev": "vite --host 127.0.0.1 --port 4179",
+    "dev": "vite -c vite.site.config.ts --host 127.0.0.1 --port 4179",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "build": "tsc --noEmit && vite build && vite build -c vite.anywhere.config.ts && tsc -p tsconfig.build.json",

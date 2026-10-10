@@ -6,104 +6,235 @@
     <title>Fracture</title>
     <link rel="stylesheet" href="./site.css" />
     <style>
-      .card {
+      .target {
+        position: relative;
+        cursor: crosshair;
+        user-select: none;
+        transition: opacity 0.5s ease;
+      }
+      .target.returning {
+        opacity: 0;
+        transition: none;
+      }
+      .target small {
+        position: absolute;
+        left: 14px;
+        bottom: 12px;
+        font-size: 13px;
+      }
+      .hero {
+        height: 340px;
+        background: var(--text);
+        color: var(--bg);
+        padding: 20px 24px;
         display: flex;
         flex-direction: column;
-        gap: 6px;
-        text-decoration: none;
-        color: inherit;
-        transition: transform 0.15s ease;
+        justify-content: space-between;
       }
-      .card:hover {
-        transform: translateY(-2px);
-        border-color: var(--accent);
+      .hero strong {
+        font-size: clamp(56px, 11vw, 120px);
+        font-weight: 500;
+        letter-spacing: -0.045em;
+        line-height: 0.9;
       }
-      .card h2 {
-        font-size: 20px;
-      }
-      .card .go {
-        color: var(--accent);
-        font-weight: 600;
-        text-decoration: none;
-      }
-      .card p {
-        margin: 0 0 auto;
-        padding-bottom: 8px;
-      }
-      .hero-actions {
-        margin: 28px 0 8px;
-      }
-      footer {
-        margin-top: 48px;
+      .hero span {
         font-size: 14px;
+      }
+      .tiles {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+        margin-top: 8px;
+      }
+      @media (max-width: 600px) {
+        .tiles {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+      .tile {
+        height: 120px;
+        color: #fff;
+      }
+      .tile.red {
+        background: #e63312;
+      }
+      .tile.blue {
+        background: #1f4fd8;
+      }
+      .tile.yellow {
+        background: #f2c200;
+        color: #161616;
+      }
+      .tile.grey {
+        background: #9a9893;
+        color: #161616;
+      }
+      .below-hero {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin: 16px 0 72px;
+      }
+      .hint {
+        margin: 0;
+        font-size: 14px;
+      }
+      .index {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .index a {
+        display: grid;
+        grid-template-columns: minmax(180px, 1fr) 2fr;
+        gap: 16px;
+        align-items: baseline;
+        padding: 18px 0;
+        border-top: 1px solid var(--line);
+        text-decoration: none;
+      }
+      .index a:hover h2 {
+        text-decoration: underline;
+        text-decoration-thickness: 1px;
+        text-underline-offset: 4px;
+      }
+      .index h2 {
+        margin: 0;
+      }
+      .index p {
+        margin: 0;
+        color: var(--muted);
+      }
+      @media (max-width: 600px) {
+        .index a {
+          grid-template-columns: 1fr;
+          gap: 4px;
+        }
       }
     </style>
   </head>
   <body>
+    <header class="site-header">
+      <div class="inner">
+        <nav class="crumbs" aria-label="Breadcrumb">
+          <span aria-current="page"><strong>Fracture</strong></span>
+        </nav>
+        <nav class="links">
+          <a href="https://github.com/aaronbeall/fracture">GitHub</a>
+          <a href="https://www.npmjs.com/package/@abeall/fracture">npm</a>
+        </nav>
+      </div>
+    </header>
     <main>
-      <h1>Fracture <span class="trip">your UI.</span></h1>
+      <h1>Fracture</h1>
       <p class="lede">
         Ever wanted to fracture your UI into a million pieces and watch the bits
         beautifully disperse as if in a hallucinogenic trance? Good news, that's
         my specialty, and now you can too!
       </p>
-      <div class="row hero-actions">
-        <button id="everything">Fracture this page</button>
-        <span class="muted"
-          >Then click anything. <kbd>+</kbd>/<kbd>-</kbd> change speed,
-          <kbd>Esc</kbd> puts it all back.</span
-        >
-      </div>
 
-      <div class="grid">
-        <a class="panel card" href="./inspector.html">
-          <h2>The algorithm</h2>
-          <p class="muted">
-            Pure geometry: a polygon and an impact point in, convex shards out.
-            Inspect patterns, seeds and blast forces.
-          </p>
-          <span class="go">Fracture inspector →</span>
-        </a>
-        <a class="panel card" href="./precise.html">
-          <h2>Precision fracturing</h2>
-          <p class="muted">
-            Break a specific modal, card or toast on cue with
-            <code>fracture()</code> or the <code>useFracture()</code> hook.
-          </p>
-          <span class="go">React demo →</span>
-        </a>
-        <div class="panel card">
-          <h2>Fracture everything</h2>
-          <p class="muted">
-            Every visible element is breakable. Hide it behind a secret phrase,
-            the Konami code, or a shortcut.
-          </p>
-          <a class="go" href="./playground.html">Playground →</a>
-          <a class="go" href="./easter-egg.html">React easter egg →</a>
+      <div
+        class="target hero"
+        role="button"
+        tabindex="0"
+        aria-label="Fracture me"
+      >
+        <span>Click anywhere.</span>
+        <strong>Fracture me.</strong>
+      </div>
+      <div class="tiles">
+        <div class="target tile red" role="button" tabindex="0">
+          <small>Also me</small>
         </div>
-        <a class="panel card" href="./anywhere.html">
-          <h2>Fracture the internet</h2>
-          <p class="muted">
-            A browser extension and bookmarklet that make any site you visit
-            destructible.
-          </p>
-          <span class="go">Get it →</span>
-        </a>
+        <div class="target tile blue" role="button" tabindex="0">
+          <small>Me too</small>
+        </div>
+        <div class="target tile yellow" role="button" tabindex="0">
+          <small>And me</small>
+        </div>
+        <div class="target tile grey" role="button" tabindex="0">
+          <small>Why not</small>
+        </div>
+      </div>
+      <div class="below-hero">
+        <p class="hint">
+          <kbd>↑</kbd> <kbd>↑</kbd> <kbd>↓</kbd> <kbd>↓</kbd> <kbd>←</kbd>
+          <kbd>→</kbd> <kbd>←</kbd> <kbd>→</kbd> <kbd>B</kbd> <kbd>A</kbd>
+          for total fracture mayhem.
+        </p>
+        <button id="reset" class="secondary" type="button" disabled>
+          Reset
+        </button>
       </div>
 
-      <footer class="muted">
-        <a href="https://github.com/aaronbeall/fracture">GitHub</a> ·
-        <a href="https://www.npmjs.com/package/@abeall/fracture">npm</a> ·
-        <a href="./depth-of-field.html">Depth-of-field rig</a>
-      </footer>
+      <ol class="index">
+        <li>
+          <a href="./inspector.html">
+            <h2>The algorithm</h2>
+            <p>A polygon and an impact point in, convex shards out.</p>
+          </a>
+        </li>
+        <li>
+          <a href="./precise.html">
+            <h2>Precision</h2>
+            <p>Break a specific modal, card or toast on cue from React.</p>
+          </a>
+        </li>
+        <li>
+          <a href="./playground.html">
+            <h2>Everything</h2>
+            <p>A page of nonsense, all of it breakable.</p>
+          </a>
+        </li>
+        <li>
+          <a href="./anywhere.html">
+            <h2>The internet</h2>
+            <p>An extension and bookmarklet for every other site.</p>
+          </a>
+        </li>
+      </ol>
     </main>
     <script type="module">
-      document
-        .querySelector("#everything")
-        .addEventListener("click", async () => {
-          const { fractureEverything } = await import("../src/easter-egg.ts");
-          await fractureEverything();
+      import { fracture } from "../src/index.ts";
+      import { installEasterEgg } from "../src/easter-egg.ts";
+
+      const targets = document.querySelectorAll(".target");
+      const reset = document.querySelector("#reset");
+      const broken = new Set();
+
+      async function shatter(target, at) {
+        try {
+          broken.add(await fracture(target, { at }));
+          reset.disabled = false;
+        } catch {
+          // Already broken or mid-capture; ignore repeat clicks.
+        }
+      }
+      for (const target of targets) {
+        target.addEventListener("click", (event) => shatter(target, event));
+        target.addEventListener("keydown", (event) => {
+          if (event.key !== "Enter" && event.key !== " ") return;
+          event.preventDefault();
+          shatter(target);
         });
+      }
+      // Bring the blocks back; pieces already in flight keep going.
+      reset.addEventListener("click", () => {
+        for (const result of broken) {
+          result.element.classList.add("returning");
+          result.restore();
+        }
+        document.body.getBoundingClientRect();
+        broken.forEach((result) =>
+          result.element.classList.remove("returning"),
+        );
+        broken.clear();
+        reset.disabled = true;
+      });
+      installEasterEgg({ triggers: ["konami"] });
     </script>
   </body>
 </html>

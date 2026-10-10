@@ -32,42 +32,88 @@ function Modal({ onClose }: { onClose: () => void }) {
   );
 }
 
-const initialCards = [
-  "Your build passed",
-  "3 new comments on your PR",
-  "Disk space is running low",
-  "Meeting moved to 3pm",
+const icons = {
+  check: <path d="M5 12.5l4.5 4.5L19 7.5" />,
+  comment: <path d="M4 5h16v11H9l-5 4z" />,
+  warning: (
+    <>
+      <path d="M12 3L2 20h20z" />
+      <path d="M12 10v4M12 17v.5" />
+    </>
+  ),
+  calendar: (
+    <>
+      <path d="M4 6h16v14H4zM4 10h16M8 3v5M16 3v5" />
+    </>
+  ),
+};
+
+interface Note {
+  text: string;
+  icon: keyof typeof icons;
+  color: string;
+}
+
+const initialNotes: Note[] = [
+  { text: "Your build passed", icon: "check", color: "#1a7f37" },
+  { text: "3 new comments on your PR", icon: "comment", color: "#1f4fd8" },
+  { text: "Disk space is running low", icon: "warning", color: "#e63312" },
+  { text: "Meeting moved to 3pm", icon: "calendar", color: "#b38f00" },
 ];
 
 function Cards() {
-  const [cards, setCards] = useState(initialCards);
+  const [notes, setNotes] = useState(initialNotes);
+  const [leaving, setLeaving] = useState(new Set<string>());
   const refs = useRef(new Map<string, HTMLElement>());
   const { fracture } = useFracture();
 
-  async function dismiss(card: string, event: MouseEvent) {
-    await fracture(refs.current.get(card) ?? null, { at: event });
-    setCards((current) => current.filter((c) => c !== card));
+  async function dismiss(text: string, event: MouseEvent) {
+    await fracture(refs.current.get(text) ?? null, { at: event });
+    // Let the burst start, then collapse the empty slot so rows slide up.
+    setTimeout(() => setLeaving((current) => new Set(current).add(text)), 250);
+  }
+
+  function remove(text: string) {
+    setNotes((current) => current.filter((note) => note.text !== text));
+    setLeaving((current) => {
+      const next = new Set(current);
+      next.delete(text);
+      return next;
+    });
   }
 
   return (
     <div className="cards">
-      {cards.map((card) => (
+      {notes.map(({ text, icon, color }) => (
         <div
-          key={card}
-          className="note"
-          ref={(node) => {
-            if (node) refs.current.set(card, node);
-            else refs.current.delete(card);
+          key={text}
+          className={`note-slot${leaving.has(text) ? " leaving" : ""}`}
+          onTransitionEnd={(e) => {
+            if (e.target === e.currentTarget && leaving.has(text)) remove(text);
           }}
         >
-          <span>{card}</span>
-          <button className="secondary" onClick={(e) => dismiss(card, e)}>
-            Dismiss
-          </button>
+          <div className="note-clip">
+            <div
+              className="note"
+              style={{ "--tone": color } as React.CSSProperties}
+              ref={(node) => {
+                if (node) refs.current.set(text, node);
+                else refs.current.delete(text);
+              }}
+            >
+              <span className="note-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">{icons[icon]}</svg>
+              </span>
+              <span className="note-text">{text}</span>
+              <button className="secondary" onClick={(e) => dismiss(text, e)}>
+                Dismiss
+              </button>
+            </div>
+          </div>
         </div>
       ))}
-      {!cards.length && (
-        <button className="secondary" onClick={() => setCards(initialCards)}>
+      {!notes.length && (
+        <button className="secondary" onClick={() => setNotes(initialNotes)}>
           Bring them back
         </button>
       )}
@@ -98,7 +144,7 @@ function Slab() {
           });
         }}
       >
-        Chunky, fast, no blur. Click me.
+        Chunky, fast, no blur.
       </div>
       <button
         className="secondary"

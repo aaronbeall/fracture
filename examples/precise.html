@@ -3,69 +3,97 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Precision fracturing</title>
+    <title>Precision fracturing · Fracture</title>
     <link rel="stylesheet" href="./site.css" />
     <style>
       #root {
-        display: grid;
-        gap: 18px;
-        margin: 28px 0;
+        margin-top: 8px;
       }
       .modal {
-        background: #fff;
-        color: #18223a;
-        border: 0;
-        border-radius: var(--radius);
+        background: var(--bg);
+        color: var(--text);
+        border: 1px solid var(--line);
         padding: 28px;
-        max-width: 420px;
-      }
-      .modal .muted {
-        color: #5a6684;
+        max-width: 400px;
       }
       .modal::backdrop {
-        background: #05081299;
+        background: #16161699;
       }
       .cards {
+        margin-top: 8px;
+      }
+      /* Collapsing a 1fr -> 0fr grid row animates the slot's height. */
+      .note-slot {
         display: grid;
-        gap: 10px;
-        margin-top: 12px;
+        grid-template-rows: 1fr;
+        transition: grid-template-rows 0.4s ease;
+      }
+      .note-slot.leaving {
+        grid-template-rows: 0fr;
+      }
+      .note-clip {
+        min-height: 0;
+        overflow: hidden;
       }
       .note {
         display: flex;
-        justify-content: space-between;
         align-items: center;
-        gap: 12px;
-        padding: 12px 16px;
-        border-radius: 12px;
-        background: linear-gradient(100deg, #1d6f8f, #5a3fa8);
+        gap: 14px;
+        margin-bottom: 8px;
+        padding: 10px 10px 10px 10px;
+        background: color-mix(in srgb, var(--tone) 12%, var(--bg));
+        border-left: 3px solid var(--tone);
       }
-      .slab {
-        width: 280px;
-        height: 140px;
+      .note-icon {
+        flex: none;
+        width: 32px;
+        height: 32px;
         display: grid;
         place-items: center;
-        text-align: center;
-        padding: 16px;
-        border-radius: 12px;
-        background: repeating-linear-gradient(
-          45deg,
-          #ffb36b,
-          #ffb36b 12px,
-          #ff8a5c 12px,
-          #ff8a5c 24px
-        );
-        color: #2a1405;
-        font-weight: 700;
-        cursor: pointer;
+        background: var(--tone);
+        color: #fff;
+      }
+      .note-icon svg {
+        width: 18px;
+        height: 18px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 2;
+        stroke-linecap: square;
+      }
+      .note-text {
+        flex: 1;
+      }
+      .slab {
+        width: 260px;
+        height: 130px;
+        padding: 12px 14px;
+        display: flex;
+        align-items: flex-end;
+        background: #e63312;
+        color: #fff;
+        font-size: 13px;
+        cursor: crosshair;
       }
     </style>
   </head>
   <body>
+    <header class="site-header">
+      <div class="inner">
+        <nav class="crumbs" aria-label="Breadcrumb">
+          <a href="./index.html">Fracture</a><span class="sep">/</span
+          ><span aria-current="page">Precision</span>
+        </nav>
+        <nav class="links">
+          <a href="https://github.com/aaronbeall/fracture">GitHub</a>
+          <a href="https://www.npmjs.com/package/@abeall/fracture">npm</a>
+        </nav>
+      </div>
+    </header>
     <main>
-      <div class="crumbs"><a href="./index.html">Fracture</a> / precision</div>
-      <h1>Fracture <span class="trip">with precision and care</span></h1>
+      <h1>Precision fracturing</h1>
       <p class="lede">
-        Pick an element, pick an impact point, and break it on cue.
+        Pick an element and an impact point, and break it on cue.
       </p>
       <pre><code>const dialog = useRef&lt;HTMLDialogElement&gt;(null);
 const { fracture } = useFracture();
@@ -76,7 +104,7 @@ async function destroy(event: React.MouseEvent) {
 }</code></pre>
       <div id="root"></div>
       <p class="muted">
-        Source: <code>examples/precise.tsx</code>. Without React:
+        Source: <code>examples/precise.tsx</code>. Without React, use
         <code>await fracture(element, { at: event })</code> from
         <code>@abeall/fracture</code>.
       </p>

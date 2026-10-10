@@ -13,7 +13,7 @@ npm install @abeall/fracture
 - **Want to just use the fracture algorithm for your own fractured needs?**
   → [The algorithm](#the-algorithm)
 - **Want to fracture something in your UI, with precision and care?**
-  → [Precision fracturing](#precision-fracturing)
+  → [Fracture simulation](#fracture-simulation)
 - **Want to just fracture EVERYTHING in your UI?**
   → [Fracture everything](#fracture-everything)
 - **Okay, you love fracturing things as much as I do… and you want to be able
@@ -25,7 +25,7 @@ npm install @abeall/fracture
 Pure geometry with no DOM and no dependencies. Give it a convex polygon and an
 impact point; get back convex pieces that exactly tile the original. Cracks
 radiate from the impact and branch at random angles, with fine splinters near
-the hit and big plates farther out. It runs anywhere: Node, workers, canvas,
+the hit and big plates farther out. This is a better glass-like shattering approximation than Voronoi, IMO. It runs anywhere: Node, workers, canvas,
 SVG, your physics engine.
 
 ```ts
@@ -51,9 +51,9 @@ for (const polygon of pieces) {
 }
 ```
 
-[Fracture inspector demo](https://aaronbeall.github.io/fracture/inspector.html)
+[Algorithm demo](https://aaronbeall.github.io/fracture/inspector.html)
 
-## Precision fracturing
+## Fracture simulation
 
 Break a specific element on cue: a modal, a card, a toast. The element is
 captured to a texture, hidden (layout is preserved, and it's made `inert` and
@@ -107,8 +107,7 @@ const { fracture } = useFracture({ motion: { gravity: 2400 }, blur: false });
 
 Turns the whole page into a breakable surface. Click anything to shatter it,
 click flying shards to break them again, `+`/`-` change time speed, and
-`Escape` puts everything back. Not very useful, but it's a fun easter egg that
-takes two lines to add.
+`Escape` puts everything back. Very important essential for every React website.
 
 ```ts
 import { installEasterEgg } from "@abeall/fracture/easter-egg";
@@ -137,8 +136,8 @@ function App() {
 To start it directly, for example from a button, use
 `await fractureEverything()`.
 
-[Playground](https://aaronbeall.github.io/fracture/playground.html) ·
-[React easter egg demo](https://aaronbeall.github.io/fracture/easter-egg.html)
+[Playground](https://aaronbeall.github.io/fracture/playground.html)
+(enter the Konami code)
 
 ## Fracture the internet
 
@@ -368,7 +367,7 @@ Requires Node 22 (see `.nvmrc`).
 
 ```sh
 npm install
-npm run dev          # http://127.0.0.1:4179/examples/
+npm run dev          # http://127.0.0.1:4179/
 npm test
 npm run typecheck
 npm run build        # dist/: ESM entries, types, fracture-anywhere.js

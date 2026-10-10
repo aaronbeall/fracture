@@ -3,183 +3,617 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Fracture everything — playground</title>
+    <title>Playground · Fracture</title>
     <style>
       * {
         box-sizing: border-box;
       }
       body {
         margin: 0;
-        background: #edf1f6;
-        color: #18334a;
+        background: #fff6e5;
+        color: #1d1a2f;
         font:
           16px/1.5 system-ui,
           sans-serif;
       }
-      header {
-        background: #153b58;
-        color: white;
-        padding: 24px 40px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-      main {
-        max-width: 1120px;
-        margin: 34px auto;
-        padding: 0 24px;
-      }
-      h1 {
-        font-size: 26px;
-        margin: 0;
-      }
-      h2 {
-        margin: 0 0 12px;
-      }
-      p {
-        margin: 6px 0 18px;
-      }
-      button,
-      input {
-        font: inherit;
-        border-radius: 6px;
-        padding: 10px 16px;
+      a {
+        color: inherit;
       }
       button {
-        color: white;
-        background: #167b91;
-        border: 1px solid #096878;
+        font: inherit;
         cursor: pointer;
       }
-      input {
-        border: 1px solid #a3b5c5;
-        width: 330px;
-      }
-      :focus-visible {
-        outline: 3px solid #f29924;
-        outline-offset: 3px;
-      }
-      form {
+
+      /* The only real content on the page */
+      .control {
         display: flex;
-        align-items: end;
-        gap: 12px;
-        margin-bottom: 28px;
+        flex-wrap: wrap;
+        gap: 12px 20px;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 20px;
+        background: #1d1a2f;
+        color: #fff;
+        font-size: 14px;
       }
-      label {
-        display: grid;
-        gap: 6px;
+      .control .back {
+        color: #c9c4ff;
+        text-decoration: none;
       }
-      .grid {
-        display: grid;
-        grid-template-columns: 2fr 1fr;
-        gap: 24px;
+      .control .how {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
       }
-      .card {
-        background: white;
-        border: 1px solid #c8d5e0;
-        padding: 24px;
-        border-radius: 12px;
-        box-shadow: 0 6px 24px #18334a0b;
+      .control kbd {
+        font:
+          12px ui-monospace,
+          Menlo,
+          monospace;
+        border: 1px solid #ffffff44;
+        border-bottom-width: 2px;
+        border-radius: 4px;
+        padding: 0 4px;
       }
-      .hero {
-        height: 330px;
-        background: linear-gradient(130deg, #107a9c, #2554a3 65%, #6133a2);
-        color: white;
-        overflow: hidden;
+      .control button {
+        background: #ff4f8b;
+        color: #fff;
+        border: 0;
+        border-radius: 999px;
+        padding: 8px 16px;
+        font-weight: 700;
       }
-      .hero strong {
-        font-size: 64px;
+      .control output {
+        color: #c9c4ff;
       }
-      .hero p {
-        max-width: 340px;
+
+      /* Everything below is nonsense */
+      .masthead {
+        text-align: center;
+        padding: 36px 20px 18px;
+        border-bottom: 4px double #1d1a2f;
+        max-width: 1100px;
+        margin: 0 auto;
       }
-      .rows {
-        margin-top: 24px;
+      .masthead h1 {
+        font:
+          900 clamp(30px, 6vw, 64px) / 1 Georgia,
+          serif;
+        letter-spacing: -0.02em;
+        margin: 0;
       }
-      .row {
-        padding: 14px 4px;
-        border-bottom: 1px solid #d9e3ec;
+      .masthead .meta {
         display: flex;
         justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 8px;
+        font:
+          italic 14px Georgia,
+          serif;
+        margin-top: 12px;
       }
-      .badge {
-        background: #d3eee6;
-        color: #1f684e;
-        border-radius: 20px;
-        padding: 2px 12px;
+      .ticker {
+        overflow: hidden;
+        background: #ffd23f;
+        border-block: 2px solid #1d1a2f;
+        white-space: nowrap;
+        font-weight: 700;
+        padding: 8px 0;
       }
-      svg {
-        width: 100%;
-        height: 150px;
+      .ticker span {
+        display: inline-block;
+        padding-left: 100%;
+        animation: scroll 40s linear infinite;
+      }
+      @keyframes scroll {
+        to {
+          transform: translateX(-100%);
+        }
+      }
+      main {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 28px 20px 60px;
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        gap: 20px;
+      }
+      .card {
+        background: #fff;
+        border: 2px solid #1d1a2f;
+        border-radius: 14px;
+        padding: 20px;
+        box-shadow: 5px 5px 0 #1d1a2f;
+      }
+      .card h2 {
+        margin: 0 0 10px;
+        font:
+          800 20px/1.15 Georgia,
+          serif;
+      }
+      .span-8 {
+        grid-column: span 8;
+      }
+      .span-6 {
+        grid-column: span 6;
+      }
+      .span-4 {
+        grid-column: span 4;
+      }
+      .span-12 {
+        grid-column: span 12;
+      }
+      @media (max-width: 760px) {
+        .span-8,
+        .span-6,
+        .span-4 {
+          grid-column: span 12;
+        }
+      }
+      .lead {
+        position: relative;
+        overflow: hidden;
+        min-height: 300px;
+        color: #fff;
+        background: linear-gradient(135deg, #5b2eff, #ff4f8b 60%, #ffb13b);
+      }
+      .lead h2 {
+        font-size: clamp(28px, 4vw, 44px);
+        max-width: 420px;
+      }
+      .lead p {
+        max-width: min(380px, 62%);
+      }
+      .blob {
+        position: absolute;
+        border-radius: 50%;
+      }
+      .cat {
+        position: absolute;
+        right: 24px;
+        bottom: 12px;
+        font-size: 120px;
+        line-height: 1;
+        transform: rotate(-12deg) scaleY(0.7);
+      }
+      .weather .big {
+        font-size: 56px;
+        line-height: 1;
+      }
+      .weather dl {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 2px 12px;
+        margin: 12px 0 0;
+      }
+      .weather dt {
+        font-weight: 700;
+      }
+      .weather dd {
+        margin: 0;
+      }
+      .stocks {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        font:
+          600 15px ui-monospace,
+          Menlo,
+          monospace;
+      }
+      .stocks li {
+        display: flex;
+        justify-content: space-between;
+        padding: 6px 0;
+        border-bottom: 1px dashed #1d1a2f55;
+      }
+      .up {
+        color: #0f9d58;
+      }
+      .down {
+        color: #e03131;
+      }
+      .products {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+        gap: 16px;
+      }
+      .product {
+        border: 2px solid #1d1a2f;
+        border-radius: 12px;
+        overflow: hidden;
+        background: #fff;
+      }
+      .product .art {
+        height: 120px;
+        display: grid;
+        place-items: center;
+        font-size: 54px;
+      }
+      .product .info {
+        padding: 12px;
+      }
+      .product strong {
         display: block;
       }
-      output {
+      .product .price {
+        font-weight: 800;
+        font-size: 18px;
+      }
+      .product button {
+        margin-top: 8px;
+        width: 100%;
+        background: #1d1a2f;
+        color: #fff;
+        border: 0;
+        border-radius: 8px;
+        padding: 8px;
+      }
+      .legend {
+        list-style: none;
+        padding: 0;
+        margin: 12px 0 0;
         font-size: 14px;
+      }
+      .legend i {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border-radius: 3px;
+        margin-right: 6px;
+        vertical-align: -1px;
+      }
+      .week {
+        display: grid;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        gap: 4px;
+        text-align: center;
+        margin-bottom: 12px;
+      }
+      .week div {
+        border: 2px solid #1d1a2f;
+        border-radius: 8px;
+        padding: 6px 0;
+        font-size: 10px;
+        background: #e8f7ff;
+      }
+      .week b {
+        display: block;
+        font-size: 13px;
+      }
+      .notes {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 18px;
+        justify-content: center;
+        padding: 10px 0;
+      }
+      .note {
+        width: 160px;
+        min-height: 140px;
+        padding: 14px;
+        font:
+          17px/1.3 "Comic Sans MS",
+          "Chalkboard SE",
+          cursive;
+        box-shadow: 3px 4px 0 #1d1a2f33;
+      }
+      .note:nth-child(1) {
+        background: #fff176;
+        transform: rotate(-4deg);
+      }
+      .note:nth-child(2) {
+        background: #a5f3fc;
+        transform: rotate(3deg);
+      }
+      .note:nth-child(3) {
+        background: #fbcfe8;
+        transform: rotate(-2deg);
+      }
+      .note:nth-child(4) {
+        background: #bbf7d0;
+        transform: rotate(5deg);
+      }
+      .bar {
+        margin: 10px 0;
+      }
+      .bar div {
+        height: 14px;
+        border: 2px solid #1d1a2f;
+        border-radius: 999px;
+        overflow: hidden;
+        background: #fff;
+      }
+      .bar span {
+        display: block;
+        height: 100%;
+        background: repeating-linear-gradient(
+          -45deg,
+          #5b2eff,
+          #5b2eff 8px,
+          #8b6bff 8px,
+          #8b6bff 16px
+        );
+      }
+      .buttons {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+        gap: 10px;
+      }
+      .buttons button {
+        border: 2px solid #1d1a2f;
+        border-radius: 10px;
+        padding: 14px 8px;
+        font-weight: 800;
+        color: #1d1a2f;
+      }
+      blockquote {
+        margin: 0;
+        font:
+          italic 22px/1.4 Georgia,
+          serif;
+      }
+      blockquote footer {
+        margin-top: 8px;
+        font: 600 14px system-ui;
+      }
+      .subscribe {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .subscribe input {
+        flex: 1;
+        min-width: 160px;
+        font: inherit;
+        padding: 8px 12px;
+        border: 2px solid #1d1a2f;
+        border-radius: 8px;
+      }
+      .subscribe button {
+        background: #ffd23f;
+        border: 2px solid #1d1a2f;
+        border-radius: 8px;
+        font-weight: 800;
+        padding: 8px 14px;
+      }
+      .site-footer {
+        text-align: center;
+        padding: 24px;
+        font:
+          italic 14px Georgia,
+          serif;
+        border-top: 4px double #1d1a2f;
+        max-width: 1100px;
+        margin: 0 auto 40px;
       }
     </style>
   </head>
   <body>
-    <header>
-      <h1>Fracture everything</h1>
-      <a href="./index.html" style="color: white">All demos</a>
-    </header>
-    <main>
-      <form id="activate-form">
-        <button type="submit">Activate Fracture</button>
-        <output id="status" aria-live="polite">Ready</output>
-      </form>
-      <p>
-        Or use a trigger: the Konami code (↑ ↑ ↓ ↓ ← → ← → B A), type
-        <em>break it all</em>, or click the header five times.
-      </p>
-      <p>
-        Click a surface to shatter it. Click flying shards to break them again.
-        Each click affects only the surface or shard you hit. + / - speeds up or
-        slows down time immediately after activation. Tab to a control and press
-        Enter or Space to shatter it. F fires at the pointer. Escape restores
-        everything.
-      </p>
-      <div class="grid">
-        <section class="card hero" aria-label="Large gradient surface">
-          <h2>Portfolio overview</h2>
-          <strong>$42.8M</strong>
-          <p>
-            Click the open space on this card for a large radial fracture. Its
-            text and gradient travel with the pieces.
-          </p>
-        </section>
-        <section class="card">
-          <h2>Impact by quarter</h2>
-          <svg
-            viewBox="0 0 280 150"
-            role="img"
-            aria-label="Quarterly impact chart"
-          >
-            <path d="M10 135H270" stroke="#a2b5c6" />
-            <rect x="24" y="70" width="40" height="65" fill="#239eaa" />
-            <rect x="87" y="40" width="40" height="95" fill="#267ac0" />
-            <rect x="150" y="15" width="40" height="120" fill="#4b55b6" />
-            <rect x="213" y="55" width="40" height="80" fill="#8664bd" />
-          </svg>
-          <button id="normal-action">Ordinary action</button>
-          <output id="action-count">0 actions</output>
-        </section>
+    <div class="control" role="region" aria-label="Fracture controls">
+      <a class="back" href="./index.html">← Fracture</a>
+      <div class="how">
+        <span
+          >Enter <kbd>↑</kbd><kbd>↑</kbd><kbd>↓</kbd><kbd>↓</kbd><kbd>←</kbd
+          ><kbd>→</kbd><kbd>←</kbd><kbd>→</kbd><kbd>B</kbd><kbd>A</kbd> or</span
+        >
+        <button id="activate" type="button">Activate fracture</button>
+        <output id="status" aria-live="polite">then break everything.</output>
       </div>
-      <section class="card rows" aria-label="Projects">
-        <h2>Projects</h2>
-        <div class="row">
-          <span>Platform modernization</span><span class="badge">Approved</span>
+    </div>
+
+    <header class="masthead">
+      <h1>The Perpetual Gazette of Mostly Nothing</h1>
+      <div class="meta">
+        <span>Vol. ∞, No. 7½</span><span>Est. some Tuesday</span
+        ><span>Price: one (1) shrug</span>
+      </div>
+    </header>
+    <div class="ticker" aria-hidden="true">
+      <span
+        >BREAKING: Clouds announce reunion tour ✦ Local man discovers fourth
+        primary color, refuses to share ✦ Scientists confirm Mondays are legally
+        optional ✦ Spoon shortage blamed on forks ✦ Moon reports feeling "a bit
+        full" ✦ Area toaster declares independence ✦</span
+      >
+    </div>
+
+    <main>
+      <article class="card lead span-8">
+        <div
+          class="blob"
+          style="
+            width: 220px;
+            height: 220px;
+            background: #ffffff22;
+            right: -40px;
+            top: -60px;
+          "
+        ></div>
+        <div
+          class="blob"
+          style="
+            width: 120px;
+            height: 120px;
+            background: #ffd23f55;
+            left: 46%;
+            bottom: -30px;
+          "
+        ></div>
+        <h2>Area Cat Achieves Liquid State, Refuses to Elaborate</h2>
+        <p>
+          Witnesses report the cat poured itself into a jar at approximately
+          3:14 p.m. and has since declined all interview requests. "It's a
+          personal journey," said the jar.
+        </p>
+        <div class="cat" aria-hidden="true">🐈</div>
+      </article>
+
+      <section class="card weather span-4">
+        <h2>Weather</h2>
+        <div class="big" aria-hidden="true">☁️🥣</div>
+        <p><strong>70% chance of soup</strong>, clearing to light gravy.</p>
+        <dl>
+          <dt>Temp</dt>
+          <dd>Lukewarm</dd>
+          <dt>Wind</dt>
+          <dd>Whispering, mostly gossip</dd>
+          <dt>UV</dt>
+          <dd>Emotionally available</dd>
+        </dl>
+      </section>
+
+      <section class="card span-4">
+        <h2>Markets</h2>
+        <ul class="stocks">
+          <li><span>BANANA</span><span class="up">▲ 3.14</span></li>
+          <li><span>VIBES</span><span class="down">▼ 0.01</span></li>
+          <li><span>NAPS</span><span class="up">▲ 99.9</span></li>
+          <li><span>SOCKS (L)</span><span class="down">▼ 42.0</span></li>
+          <li><span>SOCKS (R)</span><span class="up">▲ 42.0</span></li>
+        </ul>
+      </section>
+
+      <section class="card span-4">
+        <h2>Things I Have Eaten</h2>
+        <svg
+          viewBox="-1 -1 2 2"
+          width="150"
+          height="150"
+          role="img"
+          aria-label="Pie chart of things eaten"
+        >
+          <path d="M0 0 L1 0 A1 1 0 1 1 -0.81 -0.59 Z" fill="#5b2eff" />
+          <path d="M0 0 L-0.81 -0.59 A1 1 0 0 1 0.31 -0.95 Z" fill="#ff4f8b" />
+          <path d="M0 0 L0.31 -0.95 A1 1 0 0 1 1 0 Z" fill="#ffd23f" />
+        </svg>
+        <ul class="legend">
+          <li><i style="background: #5b2eff"></i>Spaghetti (60%)</li>
+          <li><i style="background: #ff4f8b"></i>Regrets (20%)</li>
+          <li><i style="background: #ffd23f"></i>One crayon (20%)</li>
+        </ul>
+      </section>
+
+      <section class="card span-4">
+        <h2>This Week</h2>
+        <div class="week">
+          <div>Mon<b>Thu</b></div>
+          <div>Tue<b>Thu</b></div>
+          <div>Wed<b>Thu</b></div>
+          <div>Thu<b>Thu</b></div>
+          <div>Fri<b>Thu</b></div>
+          <div>Sat<b>Thu</b></div>
+          <div>Sun<b>Thu</b></div>
         </div>
-        <div class="row">
-          <span>Better decisions, fewer spreadsheets</span
-          ><span class="badge">In progress</span>
-        </div>
-        <div class="row">
-          <a href="#navigation-test">Navigation test</a
-          ><button id="small-action">Small surface</button>
+        <p>Every day is Thursday now. We voted.</p>
+      </section>
+
+      <section class="card span-12">
+        <h2>Shop Things Nobody Asked For</h2>
+        <div class="products">
+          <div class="product">
+            <div class="art" style="background: #ffe0ec">🥄</div>
+            <div class="info">
+              <strong>Left-Handed Spoon</strong><span class="price">$49</span>
+              <button type="button">Add to cart</button>
+            </div>
+          </div>
+          <div class="product">
+            <div class="art" style="background: #e0f2ff">💧</div>
+            <div class="info">
+              <strong>Decaf Water</strong><span class="price">$12</span>
+              <button type="button">Add to cart</button>
+            </div>
+          </div>
+          <div class="product">
+            <div class="art" style="background: #fff4c2">🎈</div>
+            <div class="info">
+              <strong>Pre-Folded Air</strong><span class="price">$3</span>
+              <button type="button">Add to cart</button>
+            </div>
+          </div>
+          <div class="product">
+            <div class="art" style="background: #e6ffe9">🔁</div>
+            <div class="info">
+              <strong>Instant Echo</strong><span class="price">$8 $8 $8</span>
+              <button type="button">Add to cart</button>
+            </div>
+          </div>
+          <div class="product">
+            <div class="art" style="background: #efe6ff">🕳️</div>
+            <div class="info">
+              <strong>Portable Hole</strong><span class="price">$0</span>
+              <button type="button">Add to cart</button>
+            </div>
+          </div>
         </div>
       </section>
+
+      <section class="card span-6">
+        <h2>Very Important Progress</h2>
+        <div class="bar">
+          Downloading more RAM
+          <div><span style="width: 98%"></span></div>
+        </div>
+        <div class="bar">
+          Loading enthusiasm
+          <div><span style="width: 12%"></span></div>
+        </div>
+        <div class="bar">
+          Reticulating splines
+          <div><span style="width: 61%"></span></div>
+        </div>
+        <div class="bar">
+          Untangling headphones
+          <div><span style="width: 3%"></span></div>
+        </div>
+      </section>
+
+      <section class="card span-6">
+        <h2>Do Not Press</h2>
+        <div class="buttons">
+          <button type="button" style="background: #ff8fab">Nope</button>
+          <button type="button" style="background: #ffd23f">
+            Absolutely not
+          </button>
+          <button type="button" style="background: #8be9fd">Don't</button>
+          <button type="button" style="background: #b9fbc0">Seriously</button>
+          <button type="button" style="background: #cdb4ff">
+            Last warning
+          </button>
+          <button type="button" style="background: #ffc6a5">Fine.</button>
+        </div>
+      </section>
+
+      <section class="span-12 notes" aria-label="Sticky notes">
+        <div class="note">Buy milk. Or a cow. Whatever's easier.</div>
+        <div class="note">Remember to forget the thing.</div>
+        <div class="note">Call mom back (she called in 2019)</div>
+        <div class="note">Water the rock 🪨</div>
+      </section>
+
+      <section class="card span-6">
+        <blockquote>
+          “Five stars. Would fracture again.”
+          <footer>— A spoon, probably</footer>
+        </blockquote>
+      </section>
+
+      <section class="card span-6">
+        <h2>Subscribe to Silence</h2>
+        <p>One empty email, every day, forever.</p>
+        <form class="subscribe" onsubmit="event.preventDefault()">
+          <input aria-label="Your mood" placeholder="Your current mood" />
+          <button type="submit">Shh</button>
+        </form>
+      </section>
     </main>
+
+    <footer class="site-footer">
+      © Never. All rights reversed. Printed on recycled thoughts.
+    </footer>
+
     <script type="module">
       import {
         fractureEverything,
@@ -188,33 +622,16 @@
 
       const status = document.querySelector("#status");
       const options = {
-        onFracture: () => (status.textContent = "Active — Escape to restore"),
-        onExit: () => (status.textContent = "Ready"),
+        onFracture: () => (status.textContent = "Escape puts it all back."),
+        onExit: () => (status.textContent = "then break everything."),
       };
-      let count = 0;
-      document.querySelector("#normal-action").addEventListener("click", () => {
-        document.querySelector("#action-count").textContent =
-          `${++count} actions`;
-      });
       document
-        .querySelector("#activate-form")
-        .addEventListener("submit", async (event) => {
-          event.preventDefault();
-          try {
-            await fractureEverything(options);
-            status.textContent = "Active — Escape to restore";
-          } catch (error) {
-            status.textContent = String(error);
-          }
+        .querySelector("#activate")
+        .addEventListener("click", async () => {
+          await fractureEverything(options);
+          status.textContent = "Click anything. + / − change speed.";
         });
-      installEasterEgg({
-        ...options,
-        triggers: [
-          "konami",
-          { sequence: "break it all" },
-          { clicks: 5, target: "header" },
-        ],
-      });
+      installEasterEgg({ ...options, triggers: ["konami"] });
     </script>
   </body>
 </html>
