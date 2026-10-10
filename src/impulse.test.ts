@@ -25,8 +25,8 @@ describe("element-centered force bias", () => {
 
   it("keeps centered impulses exactly unchanged", () => {
     const bias = impactBias({ x: 400, y: 300 }, 800, 600);
-    expect(sampleImpulse(80, -20, () => 0.5, bias)).toEqual(
-      sampleImpulse(80, -20, () => 0.5),
+    expect(sampleImpulse(80, -20, { random: () => 0.5, bias })).toEqual(
+      sampleImpulse(80, -20, { random: () => 0.5 }),
     );
   });
 
@@ -38,8 +38,8 @@ describe("element-centered force bias", () => {
       [0, -100],
       [0, 100],
     ] as const) {
-      const before = sampleImpulse(dx, dy, () => 0.5);
-      const after = sampleImpulse(dx, dy, () => 0.5, bias);
+      const before = sampleImpulse(dx, dy, { random: () => 0.5 });
+      const after = sampleImpulse(dx, dy, { random: () => 0.5, bias });
       expect(after.velocity.x).toBe(before.velocity.x);
       // World +y points up, while DOM +y points down.
       expect(after.velocity.y).toBeGreaterThan(before.velocity.y);
@@ -56,8 +56,8 @@ describe("element-centered force bias", () => {
       [0, -100],
       [0, 100],
     ] as const) {
-      const before = sampleImpulse(dx, dy, () => 0.5).velocity;
-      const after = sampleImpulse(dx, dy, () => 0.5, bias).velocity;
+      const before = sampleImpulse(dx, dy, { random: () => 0.5 }).velocity;
+      const after = sampleImpulse(dx, dy, { random: () => 0.5, bias }).velocity;
       expect(after.x).toBeLessThan(before.x);
       expect(after.y).toBeGreaterThan(before.y);
     }

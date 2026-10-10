@@ -98,8 +98,7 @@ async function firstShard() {
   await vi.waitFor(() => expect(target.hasAttribute("inert")).toBe(true));
   const scene = renderState.scenes[renderState.scenes.length - 1];
   const shard = scene?.children[0]?.userData.shard as
-    | { age: number; velocity: Vector3 }
-    | undefined;
+    { age: number; velocity: Vector3 } | undefined;
   if (!shard) throw new Error("Expected a rendered shard");
   step(1000);
   return shard;
@@ -191,7 +190,10 @@ describe("lazy session lifecycle", () => {
         velocity: Vector3;
       };
       const c = center(shard.polygon);
-      const impulse = sampleImpulse(c.x - 180, c.y - 80, () => 0.5, bias);
+      const impulse = sampleImpulse(c.x - 180, c.y - 80, {
+        random: () => 0.5,
+        bias,
+      });
       const expected = new Vector3(
         impulse.velocity.x,
         impulse.velocity.y,

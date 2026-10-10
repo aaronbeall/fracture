@@ -8,7 +8,14 @@ import {
   type Polygon,
 } from "../src/fracture";
 import { impactBias, sampleImpulse } from "../src/impulse";
-import { FRACTURE_TUNING as tuning } from "../src/tuning";
+import { DEFAULT_FRACTURE_PARAMS, DEFAULT_IMPULSE_PARAMS } from "../src/params";
+import { FRACTURE_TUNING } from "../src/tuning";
+
+const tuning = {
+  ...DEFAULT_FRACTURE_PARAMS,
+  ...DEFAULT_IMPULSE_PARAMS,
+  ...FRACTURE_TUNING,
+};
 
 function element<T extends Element>(selector: string): T {
   const found = document.querySelector<T>(selector);
@@ -99,14 +106,17 @@ function draw() {
     { x: 0, y: height },
   ];
   const rng = random(seed.valueAsNumber);
-  const pieces = fracture(source, hit, undefined, rng);
+  const pieces = fracture(source, hit, { random: rng });
   const nodes = document.createDocumentFragment();
   selected = undefined;
   fragments = pieces.map((polygon) => {
     const c = center(polygon);
     const delta = { x: c.x - hit.x, y: c.y - hit.y };
     // The original DOM plane maps 1:1 to screen pixels, just like the initial runtime blast.
-    const { velocity } = sampleImpulse(delta.x, delta.y, rng, bias);
+    const { velocity } = sampleImpulse(delta.x, delta.y, {
+      random: rng,
+      bias,
+    });
     const rawSpeed = Math.hypot(velocity.x, velocity.y, velocity.z);
     const speed = Math.min(rawSpeed, tuning.maxSpeed);
     const scale = rawSpeed > 0 ? speed / rawSpeed : 0;

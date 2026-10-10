@@ -1,7 +1,28 @@
-import { impulseFalloff, type Point } from "./fracture";
-import { FRACTURE_TUNING as tuning } from "./tuning";
+import type { Point } from "./fracture";
+import { DEFAULT_IMPULSE_PARAMS, type ImpulseParams } from "./params";
 
 const noBias: Point = { x: 0, y: 0 };
+
+export interface Impulse {
+  /** Pixels per simulation second; +y is up and +z is toward the viewer. */
+  velocity: { x: number; y: number; z: number };
+  /** Radians per simulation second around each axis. */
+  spin: { x: number; y: number; z: number };
+}
+
+export interface ImpulseOptions extends Partial<ImpulseParams> {
+  random?: () => number;
+  /** Shared inward push from `impactBias()`. */
+  bias?: Point;
+}
+
+/** Distance is in screen pixels so the same blast feels consistent on every surface. */
+export function impulseFalloff(
+  distance: number,
+  forceDistance = DEFAULT_IMPULSE_PARAMS.forceDistance,
+): number {
+  return Math.exp(-Math.max(0, distance) / forceDistance);
+}
 
 /** Shared screen-space direction from an element-local impact toward its center. */
 export function impactBias(
@@ -14,17 +35,18 @@ export function impactBias(
   return { x: normalized(impact.x, width), y: normalized(impact.y, height) };
 }
 
-/** Sample a noisy blast in world coordinates from a screen-space displacement. */
+/** Sample a noisy blast in world coordinates from a piece's screen-space offset to the impact. */
 export function sampleImpulse(
   dx: number,
   dy: number,
-  random = Math.random,
-  bias: Point = noBias,
-) {
+  { random = Math.random, bias = noBias, ...params }: ImpulseOptions = {},
+): Impulse {
+  const tuning = { ...DEFAULT_IMPULSE_PARAMS, ...params };
   const jitter = (amount: number) => (random() * 2 - 1) * amount;
   const distance = Math.hypot(dx, dy);
   const strength =
-    impulseFalloff(distance) * (1 + jitter(tuning.forceVariation));
+    impulseFalloff(distance, tuning.forceDistance) *
+    (1 + jitter(tuning.forceVariation));
   const angle =
     (distance > 0.01 ? Math.atan2(dy, dx) : random() * Math.PI * 2) +
     jitter(tuning.directionVariation);

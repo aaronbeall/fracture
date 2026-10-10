@@ -1,5 +1,6 @@
 import { Mesh, Quaternion, Raycaster, Vector2, Vector3 } from "three";
 import { area, center, fracture, type Point, type Polygon } from "./fracture";
+import { REFRACTURE_PARAMS } from "./params";
 import { impactBias, sampleImpulse } from "./impulse";
 import { FRACTURE_TUNING as tuning } from "./tuning";
 import { createHud } from "./hud";
@@ -161,12 +162,9 @@ export function setup(): () => void {
     hud.hide();
     for (const shard of affected) {
       const delta = displacement(shard, point);
-      const impulse = sampleImpulse(
-        delta.x,
-        delta.y,
-        Math.random,
-        biasFor(shard, point),
-      );
+      const impulse = sampleImpulse(delta.x, delta.y, {
+        bias: biasFor(shard, point),
+      });
       // A tangential component makes the blast spiral; far pieces barely move until gravity wins.
       shard.velocity.add(
         new Vector3(impulse.velocity.x, impulse.velocity.y, impulse.velocity.z),
@@ -242,7 +240,7 @@ export function setup(): () => void {
       const impact = { x: local.x + c.x, y: c.y - local.y };
       if (!opaqueAt(shard.surface.snapshot, impact)) continue;
       if (area(shard.polygon) > 24 && shard.generation < 5) {
-        const children = fracture(shard.polygon, impact, "fragment");
+        const children = fracture(shard.polygon, impact, REFRACTURE_PARAMS);
         const fresh = children.map((polygon) =>
           addShard(polygon, shard.surface, shard),
         );

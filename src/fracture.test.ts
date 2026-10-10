@@ -4,11 +4,15 @@ import {
   center,
   contains,
   fracture,
-  impulseFalloff,
+  rectangle,
   type Polygon,
 } from "./fracture";
-import { sampleImpulse } from "./impulse";
-import { FRACTURE_TUNING } from "./tuning";
+import { impulseFalloff, sampleImpulse } from "./impulse";
+import {
+  DEFAULT_FRACTURE_PARAMS,
+  DEFAULT_IMPULSE_PARAMS,
+  REFRACTURE_PARAMS,
+} from "./params";
 
 function random(seed = 17) {
   return () => {
@@ -16,12 +20,6 @@ function random(seed = 17) {
     return seed / 4294967296;
   };
 }
-const rectangle = (w: number, h: number): Polygon => [
-  { x: 0, y: 0 },
-  { x: w, y: 0 },
-  { x: w, y: h },
-  { x: 0, y: h },
-];
 
 describe("impact fracture network", () => {
   it.each([
@@ -31,7 +29,7 @@ describe("impact fracture network", () => {
     { x: 20, y: 480 },
   ])("tiles the original surface without gaps at $x,$y", (impact) => {
     const original = rectangle(800, 500);
-    const pieces = fracture(original, impact, undefined, random());
+    const pieces = fracture(original, impact, { random: random() });
     expect(pieces.length).toBeGreaterThan(1);
     expect(pieces.reduce((sum, piece) => sum + area(piece), 0)).toBeCloseTo(
       area(original),
@@ -62,14 +60,12 @@ describe("impact fracture network", () => {
     const small = fracture(
       rectangle(20, 14),
       { x: 10, y: 7 },
-      undefined,
-      random(),
+      { random: random() },
     );
     const pieces = fracture(
       rectangle(1000, 700),
       { x: 500, y: 350 },
-      undefined,
-      random(),
+      { random: random() },
     );
     expect(small).toHaveLength(pieces.length);
     pieces.forEach((piece, i) => {
@@ -96,11 +92,13 @@ describe("impact fracture network", () => {
     const parent = fracture(
       rectangle(700, 500),
       { x: 120, y: 260 },
-      undefined,
-      random(),
+      { random: random() },
     ).sort((a, b) => area(b) - area(a))[0];
     if (!parent) throw new Error("Expected a fracture surface");
-    const children = fracture(parent, center(parent), "fragment", random(42));
+    const children = fracture(parent, center(parent), {
+      ...REFRACTURE_PARAMS,
+      random: random(42),
+    });
     expect(children.length).toBeGreaterThan(3);
     expect(children.reduce((sum, piece) => sum + area(piece), 0)).toBeCloseTo(
       area(parent),
@@ -115,12 +113,9 @@ describe("impact fracture network", () => {
     "mixes generations and canted cuts within the same impact zone (seed %i)",
     (seed) => {
       const hit = { x: 500, y: 350 };
-      const pieces = fracture(
-        rectangle(1000, 700),
-        hit,
-        undefined,
-        random(seed),
-      );
+      const pieces = fracture(rectangle(1000, 700), hit, {
+        random: random(seed),
+      });
       const middleAreas = pieces
         .filter((piece) => {
           const c = center(piece);
@@ -162,9 +157,29 @@ describe("impact fracture network", () => {
     },
   );
 
+  it("is repeatable for a seed and responds to params", () => {
+    const surface = rectangle(600, 400);
+    const hit = { x: 300, y: 200 };
+    expect(fracture(surface, hit, { random: random(5) })).toEqual(
+      fracture(surface, hit, { random: random(5) }),
+    );
+    const coarse = fracture(surface, hit, {
+      radialCracks: 6,
+      generations: 2,
+      random: random(5),
+    });
+    const fine = fracture(surface, hit, { random: random(5) });
+    expect(coarse.length).toBeLessThan(fine.length / 4);
+    expect(coarse.reduce((sum, piece) => sum + area(piece), 0)).toBeCloseTo(
+      area(surface),
+      5,
+    );
+    expect(DEFAULT_FRACTURE_PARAMS.radialCracks).toBe(18);
+  });
+
   it("uses exponential impulse falloff with almost no force at a distant edge", () => {
     expect(impulseFalloff(0)).toBe(1);
-    const distance = FRACTURE_TUNING.forceDistance;
+    const distance = DEFAULT_IMPULSE_PARAMS.forceDistance;
     expect(impulseFalloff(distance * 2)).toBeCloseTo(
       impulseFalloff(distance) ** 2,
     );
@@ -172,14 +187,18 @@ describe("impact fracture network", () => {
   });
 
   it("varies force and spin between pieces at the same distance", () => {
-    const first = sampleImpulse(100, 0, random(17));
-    const second = sampleImpulse(100, 0, random(42));
+    const first = sampleImpulse(100, 0, { random: random(17) });
+    const second = sampleImpulse(100, 0, { random: random(42) });
     expect(first.velocity).not.toEqual(second.velocity);
     expect(first.spin).not.toEqual(second.spin);
     expect(first.velocity.y / first.velocity.x).not.toBeCloseTo(
       second.velocity.y / second.velocity.x,
     );
-    for (const impulse of [first, second, sampleImpulse(0, 0, random())]) {
+    for (const impulse of [
+      first,
+      second,
+      sampleImpulse(0, 0, { random: random() }),
+    ]) {
       expect(impulse.velocity.z).toBeGreaterThan(0);
       expect(
         [
@@ -191,9 +210,9 @@ describe("impact fracture network", () => {
   });
 
   it("preserves exponential falloff on every axis of a noisy impulse", () => {
-    const distance = FRACTURE_TUNING.forceDistance;
-    const near = sampleImpulse(distance, 0, random());
-    const far = sampleImpulse(distance * 2, 0, random());
+    const distance = DEFAULT_IMPULSE_PARAMS.forceDistance;
+    const near = sampleImpulse(distance, 0, { random: random() });
+    const far = sampleImpulse(distance * 2, 0, { random: random() });
     for (const component of ["velocity", "spin"] as const)
       for (const axis of ["x", "y", "z"] as const)
         expect(far[component][axis]).toBeCloseTo(

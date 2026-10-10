@@ -1,4 +1,4 @@
-import { FRACTURE_TUNING } from "./tuning";
+import { DEFAULT_FRACTURE_PARAMS, type FractureParams } from "./params";
 
 /** Convex polygons stay convex as cracks propagate, including recursive fractures. */
 export interface Point {
@@ -6,6 +6,30 @@ export interface Point {
   y: number;
 }
 export type Polygon = Point[];
+
+export interface FractureOptions extends Partial<FractureParams> {
+  /** Source of randomness in [0, 1); pass a seeded generator for repeatable patterns. */
+  random?: () => number;
+}
+
+/** Axis-aligned rectangle with its top-left corner at the origin. */
+export function rectangle(width: number, height: number): Polygon {
+  return [
+    { x: 0, y: 0 },
+    { x: width, y: 0 },
+    { x: width, y: height },
+    { x: 0, y: height },
+  ];
+}
+
+/** Small deterministic generator for repeatable fractures. */
+export function seededRandom(seed: number): () => number {
+  let state = seed >>> 0;
+  return () => {
+    state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
+    return state / 4294967296;
+  };
+}
 
 export function vertex(polygon: Polygon, index: number): Point {
   const point = polygon[index % polygon.length];
@@ -80,6 +104,8 @@ export function contains(polygon: Polygon, p: Point): boolean {
 }
 
 /**
+ * Split a convex polygon into convex pieces that exactly tile it.
+ *
  * Uneven radial cracks form the major shards. Each shard then branches through
  * independently canted, off-center cuts. Branches inherit a variable grain size
  * and stop at different generations, leaving large plates beside small splinters.
@@ -88,24 +114,21 @@ export function contains(polygon: Polygon, p: Point): boolean {
 export function fracture(
   polygon: Polygon,
   impact: Point,
-  profile: "surface" | "fragment" = "surface",
-  random = Math.random,
+  { random = Math.random, ...params }: FractureOptions = {},
 ): Polygon[] {
   const centroid = center(polygon);
   const sourceArea = area(polygon);
   const minimumArea = sourceArea * 1e-12;
-  const settings = FRACTURE_TUNING;
-  const maxGeneration =
-    profile === "fragment" ? 3 : settings.fractureGenerations;
-  const coreArea =
-    sourceArea * (profile === "fragment" ? 0.004 : settings.coreAreaFraction);
+  const settings = { ...DEFAULT_FRACTURE_PARAMS, ...params };
+  const maxGeneration = settings.generations;
+  const coreArea = sourceArea * settings.coreAreaFraction;
   const hit = contains(polygon, impact) ? impact : centroid;
   // Keep edge/corner hits just inside the surface to avoid degenerate radial fans.
   const origin = {
     x: hit.x * 0.999 + centroid.x * 0.001,
     y: hit.y * 0.999 + centroid.y * 0.001,
   };
-  const rayCount = profile === "fragment" ? 4 : settings.radialCracks;
+  const rayCount = Math.max(0, Math.round(settings.radialCracks));
   const angles = polygon.map((p) => Math.atan2(p.y - origin.y, p.x - origin.x));
   let angle = random() * Math.PI * 2;
   const spacing = Array.from({ length: rayCount }, () =>
@@ -195,9 +218,4 @@ export function fracture(
     );
   }
   return pieces;
-}
-
-/** Distance is in screen pixels so the same blast feels consistent on every surface. */
-export function impulseFalloff(distance: number): number {
-  return Math.exp(-Math.max(0, distance) / FRACTURE_TUNING.forceDistance);
 }
