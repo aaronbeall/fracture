@@ -1,12 +1,19 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PerspectiveCamera, Scene, Vector3 } from "three";
-import { setup } from "./runtime";
+import { activate as setup } from "./everything";
 import { captureSurface } from "./surface";
-import { FRACTURE_TUNING as tuning } from "./tuning";
+import { DEFAULT_MOTION_PARAMS } from "./params";
 import { area, center, type Polygon } from "./fracture";
 import { impactBias, sampleImpulse } from "./impulse";
-import { destroyedCountKey } from "./hud";
+import { defaultHudMessage, destroyedCountKey } from "./hud";
+
+const tuning = {
+  ...DEFAULT_MOTION_PARAMS,
+  timeScaleStep: 1.25,
+  minTimeScale: 0.01,
+  maxTimeScale: 2,
+};
 
 const renderState = vi.hoisted(() => ({
   constructors: vi.fn(),
@@ -326,20 +333,18 @@ describe("lazy session lifecycle", () => {
 
   it("does nothing on module import and sets up only one canvas and HUD", () => {
     expect(renderState.constructors).not.toHaveBeenCalled();
-    expect(document.querySelector("[data-fracture-lens-overlay]")).toBeNull();
+    expect(document.querySelector("[data-fracture-overlay]")).toBeNull();
     expect(requestAnimationFrame).not.toHaveBeenCalled();
     dispose = setup();
     expect(setup()).toBe(dispose);
     expect(renderState.constructors).toHaveBeenCalledTimes(1);
-    expect(
-      document.querySelectorAll("[data-fracture-lens-overlay]"),
-    ).toHaveLength(2);
-    expect(document.querySelectorAll("[data-fracture-lens-hud]")).toHaveLength(
-      1,
+    expect(document.querySelectorAll("[data-fracture-overlay]")).toHaveLength(
+      2,
     );
-    expect(
-      document.querySelector("[data-fracture-lens-hud]")?.textContent,
-    ).toBe("Fractured 0 times since A-A-ron done messed up.");
+    expect(document.querySelectorAll("[data-fracture-hud]")).toHaveLength(1);
+    expect(document.querySelector("[data-fracture-hud]")?.textContent).toBe(
+      defaultHudMessage(0),
+    );
     expect(requestAnimationFrame).not.toHaveBeenCalled();
   });
 
@@ -353,7 +358,7 @@ describe("lazy session lifecycle", () => {
     dispose = setup();
     click(target);
     await vi.waitFor(() =>
-      expect(target.hasAttribute("data-fracture-lens-hidden")).toBe(true),
+      expect(target.hasAttribute("data-fracture-hidden")).toBe(true),
     );
     expect(action).not.toHaveBeenCalled();
     expect(target.hasAttribute("inert")).toBe(true);
@@ -363,8 +368,8 @@ describe("lazy session lifecycle", () => {
     );
     expect(target.hasAttribute("inert")).toBe(false);
     expect(target.getAttribute("aria-hidden")).toBe("false");
-    expect(target.hasAttribute("data-fracture-lens-hidden")).toBe(false);
-    expect(document.querySelector("[data-fracture-lens-overlay]")).toBeNull();
+    expect(target.hasAttribute("data-fracture-hidden")).toBe(false);
+    expect(document.querySelector("[data-fracture-overlay]")).toBeNull();
     expect(document.activeElement).toBe(target);
     click(target);
     expect(action).toHaveBeenCalledOnce();
@@ -378,7 +383,7 @@ describe("lazy session lifecycle", () => {
     dispose = setup();
     click(document.body);
     await vi.waitFor(() => expect(console.warn).toHaveBeenCalled());
-    expect(document.querySelector("[data-fracture-lens-hidden]")).toBeNull();
+    expect(document.querySelector("[data-fracture-hidden]")).toBeNull();
     expect(localStorage.getItem(destroyedCountKey)).toBeNull();
   });
 
@@ -395,7 +400,7 @@ describe("lazy session lifecycle", () => {
     dispose();
     resolve?.(snapshot());
     await Promise.resolve();
-    expect(document.querySelector("[data-fracture-lens-hidden]")).toBeNull();
+    expect(document.querySelector("[data-fracture-hidden]")).toBeNull();
     expect(renderState.draw).not.toHaveBeenCalled();
     expect(localStorage.getItem(destroyedCountKey)).toBeNull();
   });
@@ -435,8 +440,8 @@ describe("lazy session lifecycle", () => {
     dispose = setup();
     expect(key("+").defaultPrevented).toBe(true);
     expect(
-      document.querySelector("[data-fracture-lens-hud] output")?.textContent,
-    ).toBe("Fractured 0 times since A-A-ron done messed up.");
+      document.querySelector("[data-fracture-hud] output")?.textContent,
+    ).toBe(defaultHudMessage(0));
     expect(requestAnimationFrame).not.toHaveBeenCalled();
     const shard = await firstShard();
     const baseStep = 0.02 * tuning.timeScale * tuning.timeScaleStep;
@@ -472,19 +477,17 @@ describe("lazy session lifecycle", () => {
     const target = document.getElementById("target")!;
     target.focus();
     dispose = setup();
-    const hud = document.querySelector<HTMLElement>(
-      "[data-fracture-lens-hud]",
-    )!;
+    const hud = document.querySelector<HTMLElement>("[data-fracture-hud]")!;
     expect(hud.getAttribute("aria-hidden")).toBe("true");
     expect(document.activeElement).toBe(target);
     expect(
-      document.querySelector("[data-fracture-lens-hud] output")?.textContent,
-    ).toBe("Fractured 7 times since A-A-ron done messed up.");
+      document.querySelector("[data-fracture-hud] output")?.textContent,
+    ).toBe(defaultHudMessage(7));
     await firstShard();
     expect(localStorage.getItem(destroyedCountKey)).toBe("8");
     expect(
-      document.querySelector("[data-fracture-lens-hud] output")?.textContent,
-    ).toBe("Fractured 8 times since A-A-ron done messed up.");
+      document.querySelector("[data-fracture-hud] output")?.textContent,
+    ).toBe(defaultHudMessage(8));
     expect(hud.getAttribute("aria-hidden")).toBe("true");
     // Finish the flight through the normal simulation cleanup path.
     for (const mesh of renderState.scenes.at(-1)!.children)
@@ -493,12 +496,12 @@ describe("lazy session lifecycle", () => {
     expect(hud.hasAttribute("aria-hidden")).toBe(false);
     expect(hud.style.opacity).toBe("0.6");
     key("Escape");
-    expect(document.querySelector("[data-fracture-lens-hud]")).toBeNull();
+    expect(document.querySelector("[data-fracture-hud]")).toBeNull();
     expect(localStorage.getItem(destroyedCountKey)).toBe("8");
     dispose = setup();
     expect(
-      document.querySelector("[data-fracture-lens-hud] output")?.textContent,
-    ).toBe("Fractured 8 times since A-A-ron done messed up.");
+      document.querySelector("[data-fracture-hud] output")?.textContent,
+    ).toBe(defaultHudMessage(8));
     await firstShard();
     expect(localStorage.getItem(destroyedCountKey)).toBe("9");
   });
@@ -509,8 +512,8 @@ describe("lazy session lifecycle", () => {
       localStorage.setItem(destroyedCountKey, stored);
       dispose = setup();
       expect(
-        document.querySelector("[data-fracture-lens-hud] output")?.textContent,
-      ).toBe("Fractured 0 times since A-A-ron done messed up.");
+        document.querySelector("[data-fracture-hud] output")?.textContent,
+      ).toBe(defaultHudMessage(0));
     },
   );
 
@@ -524,8 +527,8 @@ describe("lazy session lifecycle", () => {
     dispose = setup();
     await firstShard();
     expect(
-      document.querySelector("[data-fracture-lens-hud] output")?.textContent,
-    ).toBe("Fractured 1 times since A-A-ron done messed up.");
+      document.querySelector("[data-fracture-hud] output")?.textContent,
+    ).toBe(defaultHudMessage(1));
   });
 
   it("refreshes the HUD when another tab updates the stored count", () => {
@@ -535,8 +538,8 @@ describe("lazy session lifecycle", () => {
       new StorageEvent("storage", { key: destroyedCountKey }),
     );
     expect(
-      document.querySelector("[data-fracture-lens-hud] output")?.textContent,
-    ).toBe("Fractured 19 times since A-A-ron done messed up.");
+      document.querySelector("[data-fracture-hud] output")?.textContent,
+    ).toBe(defaultHudMessage(19));
   });
 
   it("does not repel while the pointer is held or R is pressed", async () => {

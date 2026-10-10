@@ -11,7 +11,7 @@ import {
   WebGLRenderTarget,
   type WebGLRenderer,
 } from "three";
-import { FRACTURE_TUNING as tuning } from "./tuning";
+import { DEFAULT_BLUR_PARAMS, type BlurParams } from "./params";
 
 /** Integrate a circular aperture over every texel; no sparse rings or random taps. */
 export function apertureKernel(radius: number) {
@@ -98,6 +98,7 @@ export class DepthBlur {
     source: WebGLRenderTarget,
     focusDistance: number,
     renderer: WebGLRenderer,
+    tuning: BlurParams = DEFAULT_BLUR_PARAMS,
   ) {
     const type = renderer.extensions.has("EXT_color_buffer_float")
       ? HalfFloatType
@@ -118,8 +119,8 @@ export class DepthBlur {
       // Large bokeh doesn't need a large sparse kernel: reduce resolution until
       // every texel in the aperture is affordable to sample. Stable when rotating.
       const resolution = Math.min(
-        Math.max(0.25, Math.min(1, tuning.blurResolutionScale)),
-        Math.max(1, tuning.apertureKernelRadius) / radius,
+        Math.max(0.25, Math.min(1, tuning.resolutionScale)),
+        Math.max(1, tuning.kernelRadius) / radius,
       );
       const texel = { value: new Vector2(1, 1) };
       const lower = radii[i - 1] ?? 0;

@@ -1,8 +1,8 @@
 import { toCanvas } from "html-to-image";
 import type { Point } from "./fracture";
 
-export const hiddenAttribute = "data-fracture-lens-hidden";
-export const overlayAttribute = "data-fracture-lens-overlay";
+export const hiddenAttribute = "data-fracture-hidden";
+export const overlayAttribute = "data-fracture-overlay";
 
 function painted(color: string): boolean {
   return (

@@ -9,7 +9,7 @@ import {
 } from "../src/fracture";
 import { impactBias, sampleImpulse } from "../src/impulse";
 import { DEFAULT_FRACTURE_PARAMS, DEFAULT_IMPULSE_PARAMS } from "../src/params";
-import { FRACTURE_TUNING } from "../src/tuning";
+import { DEFAULT_MOTION_PARAMS as FRACTURE_TUNING } from "../src/params";
 
 const tuning = {
   ...DEFAULT_FRACTURE_PARAMS,

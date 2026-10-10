@@ -73,3 +73,53 @@ export const DEFAULT_IMPULSE_PARAMS: Readonly<ImpulseParams> = {
   spinMultiplier: 2,
   spinVariation: 0.35,
 };
+
+/** Flight of pieces after the initial impulse. */
+export interface MotionParams {
+  /** Simulation seconds per real second; small values give the slow-motion drift. */
+  timeScale: number;
+  /** Pixels per simulation second squared. */
+  gravity: number;
+  /** Exponential velocity decay per simulation second. */
+  drag: number;
+  /** Speed cap in pixels per simulation second, so repeated hits stay bounded. */
+  maxSpeed: number;
+  /** Radians per simulation second; allows repeated hits to add spin. */
+  maxSpin: number;
+  /** Fraction of the natural thickness; 0.5 makes all shards half as thick. */
+  thicknessScale: number;
+  /** Simulation seconds before a piece is removed even if still on screen. */
+  maxAge: number;
+  /** Oldest pieces are dropped beyond this count to bound GPU work. */
+  maxShards: number;
+}
+
+/** Depth-of-field blur for pieces leaving the page plane. */
+export interface BlurParams {
+  /** Virtual lens aperture radius in scene pixels. Larger = shallower depth of field. */
+  apertureRadius: number;
+  /** Maximum blur radius in CSS pixels. */
+  maxBlurRadius: number;
+  /** Maximum blur-buffer pixels per CSS pixel. Focused faces stay full resolution. */
+  resolutionScale: number;
+  /** Dense aperture radius in buffer pixels. Larger = finer bokeh at higher GPU cost. */
+  kernelRadius: number;
+}
+
+export const DEFAULT_MOTION_PARAMS: Readonly<MotionParams> = {
+  timeScale: 0.06,
+  gravity: 760,
+  drag: 0.12,
+  maxSpeed: 2600,
+  maxSpin: 36,
+  thicknessScale: 0.5,
+  maxAge: 18,
+  maxShards: 2400,
+};
+
+export const DEFAULT_BLUR_PARAMS: Readonly<BlurParams> = {
+  apertureRadius: 40,
+  maxBlurRadius: 32,
+  resolutionScale: 0.5,
+  kernelRadius: 5,
+};

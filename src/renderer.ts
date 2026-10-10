@@ -17,6 +17,7 @@ import {
 import { center, vertex, type Polygon } from "./fracture";
 import type { Snapshot } from "./surface";
 import { DepthBlur } from "./depth-blur";
+import { DEFAULT_BLUR_PARAMS, type BlurParams } from "./params";
 
 export const cameraDistance = 1000;
 
@@ -95,13 +96,13 @@ export class FractureRenderer {
   private readonly target = new WebGLRenderTarget(1, 1, {
     depthTexture: new DepthTexture(1, 1, UnsignedIntType),
   });
-  private readonly depthBlur = new DepthBlur(
-    this.target,
-    cameraDistance,
-    this.renderer,
-  );
+  private readonly depthBlur: DepthBlur | null;
 
-  constructor() {
+  /** Pass `false` to render pieces without depth-of-field blur. */
+  constructor(blur: BlurParams | false = DEFAULT_BLUR_PARAMS) {
+    this.depthBlur = blur
+      ? new DepthBlur(this.target, cameraDistance, this.renderer, blur)
+      : null;
     this.renderer.setClearColor(0x000000, 0);
     this.renderer.toneMapping = NoToneMapping;
     this.renderer.outputColorSpace = SRGBColorSpace;
@@ -124,7 +125,7 @@ export class FractureRenderer {
       Math.round(innerWidth * ratio),
       Math.round(innerHeight * ratio),
     );
-    this.depthBlur.resize(innerWidth, innerHeight);
+    this.depthBlur?.resize(innerWidth, innerHeight);
     this.camera.aspect = innerWidth / innerHeight;
     this.camera.fov =
       (2 * Math.atan(innerHeight / (2 * cameraDistance)) * 180) / Math.PI;
@@ -134,14 +135,14 @@ export class FractureRenderer {
   }
 
   draw() {
-    this.renderer.setRenderTarget(this.target);
+    this.renderer.setRenderTarget(this.depthBlur ? this.target : null);
     this.renderer.render(this.scene, this.camera);
-    this.depthBlur.draw(this.renderer);
+    this.depthBlur?.draw(this.renderer);
   }
 
   dispose() {
     this.target.dispose();
-    this.depthBlur.dispose();
+    this.depthBlur?.dispose();
     this.renderer.dispose();
     this.renderer.forceContextLoss();
     this.renderer.domElement.remove();

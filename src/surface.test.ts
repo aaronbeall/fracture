@@ -10,7 +10,7 @@ afterEach(() => {
 describe("painted surface detection", () => {
   it("never captures overlay instructions or HUD counters", () => {
     document.body.innerHTML =
-      '<aside data-fracture-lens-overlay style="background:black"><output>Destroyed 10</output></aside>';
+      '<aside data-fracture-overlay style="background:black"><output>Destroyed 10</output></aside>';
     vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockReturnValue(
       new DOMRect(0, 0, 300, 60),
     );

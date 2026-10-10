@@ -1,9 +1,21 @@
 import { Mesh, Quaternion, Raycaster, Vector2, Vector3 } from "three";
-import { area, center, fracture, type Point, type Polygon } from "./fracture";
-import { REFRACTURE_PARAMS } from "./params";
+import {
+  area,
+  center,
+  fracture as fracturePolygon,
+  rectangle,
+  type Point,
+  type Polygon,
+} from "./fracture";
 import { impactBias, sampleImpulse } from "./impulse";
-import { FRACTURE_TUNING as tuning } from "./tuning";
-import { createHud } from "./hud";
+import {
+  DEFAULT_BLUR_PARAMS,
+  DEFAULT_FRACTURE_PARAMS,
+  DEFAULT_IMPULSE_PARAMS,
+  DEFAULT_MOTION_PARAMS,
+  REFRACTURE_PARAMS,
+  type ImpulseParams,
+} from "./params";
 import {
   cameraDistance,
   FractureRenderer,
@@ -19,17 +31,32 @@ import {
   overlayAttribute,
   type Snapshot,
 } from "./surface";
+import type {
+  FractureElementOptions,
+  FractureResult,
+  FractureStage,
+  PointLike,
+  StageOptions,
+  StrikeOptions,
+} from "./types";
 
 interface Surface {
   snapshot: Snapshot;
   appearance: ReturnType<typeof makeMaterials>;
+  impulse: ImpulseParams;
   references: number;
+}
+
+interface Batch {
+  shards: number;
+  resolve: () => void;
 }
 
 interface Shard {
   polygon: Polygon;
   mesh: Mesh;
   surface: Surface;
+  batch: Batch;
   velocity: Vector3;
   spin: Vector3;
   thickness: number;
@@ -37,45 +64,71 @@ interface Shard {
   age: number;
 }
 
-const sessions = new WeakMap<Document, () => void>();
+/** Viewport point for an impact; keyboard clicks (detail 0) and missing points use the element center. */
+export function resolvePoint(at: PointLike | undefined, element?: Element) {
+  const bounds = element?.getBoundingClientRect();
+  const middle = bounds && {
+    x: bounds.left + bounds.width / 2,
+    y: bounds.top + bounds.height / 2,
+  };
+  if (!at) return middle ?? { x: innerWidth / 2, y: innerHeight / 2 };
+  if ("clientX" in at)
+    return at.detail === 0 && middle
+      ? middle
+      : { x: at.clientX, y: at.clientY };
+  return { x: at.x, y: at.y };
+}
 
-/** Activate the lazy DOM shatter effect; repeated calls are safe. Escape or the returned function restores the page. */
-export function setup(): () => void {
-  const existing = sessions.get(document);
-  if (existing) return existing;
-  const view = new FractureRenderer();
+/** Create a transparent WebGL overlay that turns DOM elements into flying shards. */
+export function createStage(stageOptions: StageOptions = {}): FractureStage {
+  const fractureParams = {
+    ...DEFAULT_FRACTURE_PARAMS,
+    ...stageOptions.fracture,
+  };
+  const refractureParams = { ...REFRACTURE_PARAMS, ...stageOptions.refracture };
+  const impulseParams = { ...DEFAULT_IMPULSE_PARAMS, ...stageOptions.impulse };
+  const motion = { ...DEFAULT_MOTION_PARAMS, ...stageOptions.motion };
+  const view = new FractureRenderer(
+    stageOptions.blur === false
+      ? false
+      : { ...DEFAULT_BLUR_PARAMS, ...stageOptions.blur },
+  );
   const canvas = view.renderer.domElement;
   canvas.setAttribute(overlayAttribute, "");
   canvas.setAttribute("aria-hidden", "true");
-  canvas.style.cssText =
-    "position:fixed;inset:0;width:100%;height:100%;margin:0;padding:0;border:0;pointer-events:none;z-index:2147483647;background:transparent;overflow:visible";
+  canvas.style.cssText = `position:fixed;inset:0;width:100%;height:100%;margin:0;padding:0;border:0;pointer-events:none;z-index:${stageOptions.zIndex ?? 2147483647};background:transparent;overflow:visible`;
   const style = document.createElement("style");
-  style.textContent = `html, html * { cursor: crosshair !important; }
-    [${hiddenAttribute}], [${hiddenAttribute}] * { visibility: hidden !important; pointer-events: none !important; }
+  style.textContent = `[${hiddenAttribute}], [${hiddenAttribute}] * { visibility: hidden !important; pointer-events: none !important; }
     [${overlayAttribute}]::backdrop { pointer-events: none; background: transparent; }`;
   document.head.append(style);
   document.body.append(canvas);
-  // The top layer keeps fragments above native dialogs as well as framework portals.
-  if (typeof canvas.showPopover === "function") {
-    canvas.setAttribute("popover", "manual");
-    canvas.showPopover();
-  }
 
   const shards: Shard[] = [];
-  const restores: (() => void)[] = [];
+  const restores = new Map<Element, () => void>();
   const pending = new Set<Element>();
-  const originalFocus = document.activeElement;
+  const idlers: (() => void)[] = [];
   const raycaster = new Raycaster();
+  const screenPosition = new Vector3();
   let stopped = false;
+  let busy = false;
   let frame = 0;
   let previous = 0;
-  let timeScale: number = tuning.timeScale;
-  const hud = createHud();
-  const settle = () => {
-    if (!stopped && !shards.length && !pending.size) hud.show();
+
+  // The top layer keeps fragments above native dialogs and popovers opened since the last raise.
+  const raise = () => {
+    if (typeof canvas.showPopover !== "function") return;
+    canvas.setAttribute("popover", "manual");
+    if (canvas.matches(":popover-open")) canvas.hidePopover();
+    canvas.showPopover();
   };
-  let lastPointer: Point = { x: innerWidth / 2, y: innerHeight / 2 };
-  const screenPosition = new Vector3();
+  raise();
+
+  const settle = () => {
+    if (stopped || shards.length || pending.size) return;
+    idlers.splice(0).forEach((resolve) => resolve());
+    if (busy) stageOptions.onIdle?.();
+    busy = false;
+  };
 
   const displacement = (shard: Shard, point: Point): Point => {
     screenPosition.copy(shard.mesh.position).project(view.camera);
@@ -93,6 +146,7 @@ export function setup(): () => void {
   const release = (shard: Shard) => {
     view.scene.remove(shard.mesh);
     shard.mesh.geometry.dispose();
+    if (--shard.batch.shards === 0) shard.batch.resolve();
     shard.surface.references--;
     if (shard.surface.references === 0) {
       shard.surface.appearance.materials.forEach((material) =>
@@ -105,7 +159,7 @@ export function setup(): () => void {
   };
 
   const trim = () => {
-    while (shards.length > tuning.maxShards) {
+    while (shards.length > motion.maxShards) {
       const oldest = shards.shift();
       if (oldest) release(oldest);
     }
@@ -114,13 +168,14 @@ export function setup(): () => void {
   const addShard = (
     polygon: Polygon,
     surface: Surface,
+    batch: Batch,
     parent?: Shard,
   ): Shard => {
     const c = center(polygon);
     const thickness = parent
-      ? Math.max(0.35 * tuning.thicknessScale, parent.thickness * 0.8)
+      ? Math.max(0.35 * motion.thicknessScale, parent.thickness * 0.8)
       : Math.min(3, Math.max(0.8, Math.sqrt(area(polygon)) * 0.055)) *
-        tuning.thicknessScale;
+        motion.thicknessScale;
     const mesh = new Mesh(
       makeGeometry(polygon, thickness, surface.snapshot),
       surface.appearance.materials,
@@ -145,6 +200,7 @@ export function setup(): () => void {
       polygon,
       mesh,
       surface,
+      batch,
       velocity,
       spin: parent?.spin.clone() ?? new Vector3(),
       thickness,
@@ -152,6 +208,7 @@ export function setup(): () => void {
       age: 0,
     };
     surface.references++;
+    batch.shards++;
     mesh.userData.shard = shard;
     shards.push(shard);
     view.scene.add(mesh);
@@ -159,10 +216,10 @@ export function setup(): () => void {
   };
 
   const blast = (point: Point, affected: Shard[]) => {
-    hud.hide();
     for (const shard of affected) {
       const delta = displacement(shard, point);
       const impulse = sampleImpulse(delta.x, delta.y, {
+        ...shard.surface.impulse,
         bias: biasFor(shard, point),
       });
       // A tangential component makes the blast spiral; far pieces barely move until gravity wins.
@@ -173,8 +230,8 @@ export function setup(): () => void {
         new Vector3(impulse.spin.x, impulse.spin.y, impulse.spin.z),
       );
       // Bound repeated impulses without flattening the exponential distance response.
-      shard.velocity.clampLength(0, tuning.maxSpeed);
-      shard.spin.clampLength(0, tuning.maxSpin);
+      shard.velocity.clampLength(0, motion.maxSpeed);
+      shard.spin.clampLength(0, motion.maxSpin);
     }
   };
 
@@ -182,14 +239,14 @@ export function setup(): () => void {
     frame = 0;
     if (stopped || document.hidden) return;
     const dt =
-      Math.min(previous ? (now - previous) / 1000 : 0, 0.05) * timeScale;
+      Math.min(previous ? (now - previous) / 1000 : 0, 0.05) * stage.timeScale;
     previous = now;
     for (let i = shards.length - 1; i >= 0; i--) {
       const shard = shards[i];
       if (!shard) continue;
       shard.age += dt;
-      shard.velocity.y -= tuning.gravity * dt;
-      shard.velocity.multiplyScalar(Math.exp(-tuning.drag * dt));
+      shard.velocity.y -= motion.gravity * dt;
+      shard.velocity.multiplyScalar(Math.exp(-motion.drag * dt));
       shard.mesh.position.addScaledVector(shard.velocity, dt);
       const speed = shard.spin.length();
       if (speed > 0)
@@ -202,10 +259,10 @@ export function setup(): () => void {
       if (
         shard.mesh.position.z > cameraDistance - 55 ||
         shard.mesh.position.y < -innerHeight - 900 ||
-        shard.age > 18
+        shard.age > motion.maxAge
       ) {
-        release(shard);
         shards.splice(i, 1);
+        release(shard);
       }
     }
     view.draw();
@@ -240,9 +297,13 @@ export function setup(): () => void {
       const impact = { x: local.x + c.x, y: c.y - local.y };
       if (!opaqueAt(shard.surface.snapshot, impact)) continue;
       if (area(shard.polygon) > 24 && shard.generation < 5) {
-        const children = fracture(shard.polygon, impact, REFRACTURE_PARAMS);
+        const children = fracturePolygon(
+          shard.polygon,
+          impact,
+          refractureParams,
+        );
         const fresh = children.map((polygon) =>
-          addShard(polygon, shard.surface, shard),
+          addShard(polygon, shard.surface, shard.batch, shard),
         );
         shards.splice(shards.indexOf(shard), 1);
         release(shard);
@@ -250,38 +311,42 @@ export function setup(): () => void {
       } else {
         blast(point, [shard]);
       }
+      trim();
+      wake();
       return true;
     }
     return false;
   };
 
-  const fire = async (point: Point, start: Element | null) => {
-    if (hitShard(point)) {
-      trim();
-      wake();
-      return;
-    }
-    const element = findSurface(start);
+  const restoreElement = (element: Element) => {
+    restores.get(element)?.();
+    restores.delete(element);
+  };
+
+  const fractureElement = async (
+    element: Element,
+    options: FractureElementOptions = {},
+  ): Promise<FractureResult> => {
+    if (stopped) throw new Error("Fracture stage is disposed");
+    if (!(element instanceof HTMLElement || element instanceof SVGSVGElement))
+      throw new Error("Only HTML elements and <svg> roots can be fractured");
     if (
-      !element ||
-      pending.size >= 3 ||
+      element.closest(`[${hiddenAttribute}]`) ||
       Array.from(pending).some(
         (node) => node.contains(element) || element.contains(node),
       )
     )
-      return;
+      throw new Error("Element is already fractured");
+    const point = resolvePoint(options.at, element);
     pending.add(element);
-    hud.hide();
+    busy = true;
     const initial = element.getBoundingClientRect();
-    let fresh: Shard[] = [];
+    const fresh: Shard[] = [];
     try {
       const snapshot = await captureSurface(element);
-      if (
-        stopped ||
-        !element.isConnected ||
-        element.closest(`[${hiddenAttribute}]`)
-      )
-        return;
+      if (stopped) throw new Error("Fracture stage is disposed");
+      if (!element.isConnected || element.closest(`[${hiddenAttribute}]`))
+        throw new Error("Element was removed or hidden during capture");
       const current = element.getBoundingClientRect();
       // Scrolling, navigation, or relayout during capture invalidates the screen-space texture.
       if (
@@ -290,30 +355,37 @@ export function setup(): () => void {
         Math.abs(current.width - initial.width) > 1 ||
         Math.abs(current.height - initial.height) > 1
       )
-        return;
-      const polygon = [
-        { x: 0, y: 0 },
-        { x: snapshot.width, y: 0 },
-        { x: snapshot.width, y: snapshot.height },
-        { x: 0, y: snapshot.height },
-      ];
-      const pieces = fracture(polygon, {
-        x: point.x - snapshot.left,
-        y: point.y - snapshot.top,
-      });
+        throw new Error("Element moved during capture");
+      const pieces = fracturePolygon(
+        rectangle(snapshot.width, snapshot.height),
+        { x: point.x - snapshot.left, y: point.y - snapshot.top },
+        { ...fractureParams, ...options.fracture },
+      );
       const surface: Surface = {
         snapshot,
         appearance: makeMaterials(snapshot),
+        impulse: { ...impulseParams, ...options.impulse },
         references: 0,
       };
-      fresh = pieces.map((piece) => addShard(piece, surface));
+      let resolve!: () => void;
+      const settled = new Promise<void>((done) => (resolve = done));
+      const batch: Batch = { shards: 0, resolve };
+      pieces.forEach((piece) => fresh.push(addShard(piece, surface, batch)));
+      raise();
       // Upload/draw successfully before touching the DOM. Failed capture never hides the original.
       view.draw();
-      restores.push(hideSurface(element));
+      if (options.hide !== false) restores.set(element, hideSurface(element));
       blast(point, fresh);
       trim();
       wake();
-      hud.recordDestruction();
+      const result: FractureResult = {
+        element,
+        pieces: pieces.length,
+        settled,
+        restore: () => restoreElement(element),
+      };
+      stageOptions.onFracture?.(result);
+      return result;
     } catch (error) {
       fresh.forEach((shard) => {
         const index = shards.indexOf(shard);
@@ -322,78 +394,52 @@ export function setup(): () => void {
           release(shard);
         }
       });
-      console.warn("Fracture Lens could not capture this surface", error);
+      throw error;
     } finally {
       pending.delete(element);
       settle();
     }
   };
 
-  const block = (event: Event) => {
-    event.preventDefault();
-    event.stopImmediatePropagation();
-  };
-  const pointer = (event: MouseEvent) => {
-    lastPointer = { x: event.clientX, y: event.clientY };
-  };
-  const pointerdown = (event: MouseEvent) => {
-    block(event);
-    pointer(event);
-  };
-  const click = (event: MouseEvent) => {
-    block(event);
-    if (event.button !== 0) return;
-    const target = event.target instanceof Element ? event.target : null;
-    const rect = target?.getBoundingClientRect();
-    const point =
-      event.detail === 0 && rect
-        ? { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }
-        : { x: event.clientX, y: event.clientY };
-    void fire(point, target);
-  };
-  const keydown = (event: KeyboardEvent) => {
-    if (event.key === "Escape") {
-      block(event);
-      dispose();
-      return;
-    }
-    if (event.ctrlKey || event.metaKey || event.altKey) return;
-    if (["+", "=", "-"].includes(event.key)) {
-      block(event);
-      timeScale = Math.max(
-        tuning.minTimeScale,
-        Math.min(
-          tuning.maxTimeScale,
-          timeScale *
-            (event.key === "-"
-              ? 1 / tuning.timeScaleStep
-              : tuning.timeScaleStep),
-        ),
-      );
-      return;
-    }
-    // Enter/Space shatter the focused control; F shatters at the last pointer location.
-    // Leave Tab/Shift+Tab native so keyboard users can reach any surviving control.
-    if (!["Enter", " ", "f", "F"].includes(event.key)) return;
-    block(event);
-    if (event.repeat) return;
-    const focused = document.activeElement;
-    const usePointer =
-      event.key.toLowerCase() === "f" || focused === document.body;
-    const bounds = !usePointer ? focused?.getBoundingClientRect() : null;
-    const point = bounds
-      ? { x: bounds.left + bounds.width / 2, y: bounds.top + bounds.height / 2 }
-      : lastPointer;
-    void fire(
-      point,
-      usePointer ? document.elementFromPoint(point.x, point.y) : focused,
+  const strike = async (
+    at: PointLike,
+    { target }: StrikeOptions = {},
+  ): Promise<boolean> => {
+    if (stopped) return false;
+    const point = resolvePoint(at, target ?? undefined);
+    if (hitShard(point)) return true;
+    const element = findSurface(
+      target === undefined
+        ? document.elementFromPoint(point.x, point.y)
+        : target,
     );
+    if (
+      !element ||
+      pending.size >= 3 ||
+      Array.from(pending).some(
+        (node) => node.contains(element) || element.contains(node),
+      )
+    )
+      return false;
+    try {
+      await fractureElement(element, { at: point });
+      return true;
+    } catch (error) {
+      if (!stopped)
+        console.warn("Fracture could not capture this element", error);
+      return false;
+    }
   };
-  const keyup = (event: KeyboardEvent) => {
-    if (["Enter", " "].includes(event.key)) block(event);
+
+  const clear = () => {
+    shards.splice(0).forEach(release);
+    if (!stopped) view.draw();
+    settle();
   };
+
   const resize = () => {
     view.resize();
+    view.draw();
     wake();
   };
   const visibility = () => {
@@ -409,46 +455,43 @@ export function setup(): () => void {
   function dispose() {
     if (stopped) return;
     stopped = true;
-    sessions.delete(document);
     cancelAnimationFrame(frame);
-    window.removeEventListener("click", click, true);
-    window.removeEventListener("pointerdown", pointerdown, true);
-    window.removeEventListener("mousedown", block, true);
-    window.removeEventListener("pointerup", block, true);
-    window.removeEventListener("mouseup", block, true);
-    window.removeEventListener("dblclick", block, true);
-    window.removeEventListener("auxclick", block, true);
-    window.removeEventListener("pointermove", pointer, true);
-    window.removeEventListener("keydown", keydown, true);
-    window.removeEventListener("keyup", keyup, true);
     window.removeEventListener("resize", resize);
     window.removeEventListener("pagehide", dispose);
     document.removeEventListener("visibilitychange", visibility);
     canvas.removeEventListener("webglcontextlost", contextLost);
-    restores.reverse().forEach((restore) => restore());
-    shards.forEach(release);
-    shards.length = 0;
+    Array.from(restores.keys()).reverse().forEach(restoreElement);
+    shards.splice(0).forEach(release);
     style.remove();
-    hud.dispose();
     view.dispose();
-    if (originalFocus instanceof HTMLElement && originalFocus.isConnected)
-      originalFocus.focus({ preventScroll: true });
+    idlers.splice(0).forEach((resolve) => resolve());
   }
 
-  sessions.set(document, dispose);
-  window.addEventListener("click", click, true);
-  window.addEventListener("pointerdown", pointerdown, true);
-  window.addEventListener("mousedown", block, true);
-  window.addEventListener("pointerup", block, true);
-  window.addEventListener("mouseup", block, true);
-  window.addEventListener("dblclick", block, true);
-  window.addEventListener("auxclick", block, true);
-  window.addEventListener("pointermove", pointer, true);
-  window.addEventListener("keydown", keydown, true);
-  window.addEventListener("keyup", keyup, true);
   window.addEventListener("resize", resize);
   window.addEventListener("pagehide", dispose);
   document.addEventListener("visibilitychange", visibility);
   canvas.addEventListener("webglcontextlost", contextLost);
-  return dispose;
+
+  const stage: FractureStage = {
+    fracture: fractureElement,
+    strike,
+    idle: () =>
+      stopped || (!shards.length && !pending.size)
+        ? Promise.resolve()
+        : new Promise<void>((resolve) => idlers.push(resolve)),
+    clear,
+    restore() {
+      clear();
+      Array.from(restores.keys()).reverse().forEach(restoreElement);
+    },
+    timeScale: motion.timeScale,
+    get shardCount() {
+      return shards.length;
+    },
+    get disposed() {
+      return stopped;
+    },
+    dispose,
+  };
+  return stage;
 }

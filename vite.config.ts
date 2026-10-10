@@ -5,8 +5,9 @@ export default defineConfig({
     lib: {
       entry: {
         index: "src/index.ts",
+        algorithm: "src/algorithm.ts",
+        "easter-egg": "src/easter-egg.ts",
         react: "src/react.ts",
-        tuning: "src/tuning.ts",
       },
       formats: ["es"],
       fileName: (_, name) => `${name}.js`,

@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { createRoot } from "react-dom/client";
-import { useFracture } from "../src/react";
+import { useFractureEasterEgg } from "../src/react";
 
 function Trigger({ enabled }: { enabled: boolean }) {
-  useFracture({ enabled });
+  useFractureEasterEgg({
+    enabled,
+    triggers: [{ sequence: "ya done messed up aaron!" }],
+  });
   return null;
 }
 
