@@ -1,10 +1,10 @@
-import type { Point } from "./fracture";
+import type { Point } from "./fracture.js";
 import type {
   BlurParams,
   FractureParams,
   ImpulseParams,
   MotionParams,
-} from "./params";
+} from "./params.js";
 
 /** Viewport coordinates, or anything with `clientX`/`clientY` such as a mouse event. */
 export type PointLike =

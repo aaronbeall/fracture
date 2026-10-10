@@ -1,16 +1,16 @@
 // @vitest-environment jsdom
 import { act, cleanup, renderHook } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
-import { useFracture, useFractureEasterEgg } from "./react";
-import { createFractureStage, getFractureStage } from "./index";
-import { installEasterEgg } from "./easter-egg";
-import type { FractureResult, FractureStage } from "./types";
+import { useFracture, useFractureEasterEgg } from "./react.js";
+import { createFractureStage, getFractureStage } from "./index.js";
+import { installEasterEgg } from "./easter-egg.js";
+import type { FractureResult, FractureStage } from "./types.js";
 
-vi.mock("./index", () => ({
+vi.mock("./index.js", () => ({
   createFractureStage: vi.fn(),
   getFractureStage: vi.fn(),
 }));
-vi.mock("./easter-egg", () => ({ installEasterEgg: vi.fn() }));
+vi.mock("./easter-egg.js", () => ({ installEasterEgg: vi.fn() }));
 afterEach(() => {
   cleanup();
   vi.resetAllMocks();

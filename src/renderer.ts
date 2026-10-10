@@ -14,10 +14,10 @@ import {
   WebGLRenderer,
   WebGLRenderTarget,
 } from "three";
-import { center, vertex, type Polygon } from "./fracture";
-import type { Snapshot } from "./surface";
-import { DepthBlur } from "./depth-blur";
-import { DEFAULT_BLUR_PARAMS, type BlurParams } from "./params";
+import { center, vertex, type Polygon } from "./fracture.js";
+import type { Snapshot } from "./surface.js";
+import { DepthBlur } from "./depth-blur.js";
+import { DEFAULT_BLUR_PARAMS, type BlurParams } from "./params.js";
 
 export const cameraDistance = 1000;
 

@@ -6,8 +6,8 @@ import {
   rectangle,
   type Point,
   type Polygon,
-} from "./fracture";
-import { impactBias, sampleImpulse } from "./impulse";
+} from "./fracture.js";
+import { impactBias, sampleImpulse } from "./impulse.js";
 import {
   DEFAULT_BLUR_PARAMS,
   DEFAULT_FRACTURE_PARAMS,
@@ -15,13 +15,13 @@ import {
   DEFAULT_MOTION_PARAMS,
   REFRACTURE_PARAMS,
   type ImpulseParams,
-} from "./params";
+} from "./params.js";
 import {
   cameraDistance,
   FractureRenderer,
   makeGeometry,
   makeMaterials,
-} from "./renderer";
+} from "./renderer.js";
 import {
   captureSurface,
   findSurface,
@@ -30,7 +30,7 @@ import {
   opaqueAt,
   overlayAttribute,
   type Snapshot,
-} from "./surface";
+} from "./surface.js";
 import type {
   FractureElementOptions,
   FractureResult,
@@ -38,7 +38,7 @@ import type {
   PointLike,
   StageOptions,
   StrikeOptions,
-} from "./types";
+} from "./types.js";
 
 interface Surface {
   snapshot: Snapshot;

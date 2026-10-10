@@ -11,7 +11,7 @@ import {
   WebGLRenderTarget,
   type WebGLRenderer,
 } from "three";
-import { DEFAULT_BLUR_PARAMS, type BlurParams } from "./params";
+import { DEFAULT_BLUR_PARAMS, type BlurParams } from "./params.js";
 
 /** Integrate a circular aperture over every texel; no sparse rings or random taps. */
 export function apertureKernel(radius: number) {

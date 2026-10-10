@@ -1,4 +1,4 @@
-import { overlayAttribute } from "./surface";
+import { overlayAttribute } from "./surface.js";
 
 export const destroyedCountKey = "fracture.destroyed-elements";
 

@@ -1,9 +1,9 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { installEasterEgg, KONAMI_CODE, type Trigger } from "./easter-egg";
-import { activate } from "./everything";
+import { installEasterEgg, KONAMI_CODE, type Trigger } from "./easter-egg.js";
+import { activate } from "./everything.js";
 
-vi.mock("./everything", () => ({ activate: vi.fn() }));
+vi.mock("./everything.js", () => ({ activate: vi.fn() }));
 let uninstall: (() => void) | undefined;
 afterEach(() => {
   uninstall?.();

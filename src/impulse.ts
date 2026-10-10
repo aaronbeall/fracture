@@ -1,5 +1,5 @@
-import type { Point } from "./fracture";
-import { DEFAULT_IMPULSE_PARAMS, type ImpulseParams } from "./params";
+import type { Point } from "./fracture.js";
+import { DEFAULT_IMPULSE_PARAMS, type ImpulseParams } from "./params.js";
 
 const noBias: Point = { x: 0, y: 0 };
 

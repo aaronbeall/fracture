@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { impactBias, sampleImpulse } from "./impulse";
+import { impactBias, sampleImpulse } from "./impulse.js";
 
 describe("element-centered force bias", () => {
   it.each([

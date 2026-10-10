@@ -1,12 +1,12 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PerspectiveCamera, Scene, Vector3 } from "three";
-import { activate as setup } from "./everything";
-import { captureSurface } from "./surface";
-import { DEFAULT_MOTION_PARAMS } from "./params";
-import { area, center, type Polygon } from "./fracture";
-import { impactBias, sampleImpulse } from "./impulse";
-import { defaultHudMessage, destroyedCountKey } from "./hud";
+import { activate as setup } from "./everything.js";
+import { captureSurface } from "./surface.js";
+import { DEFAULT_MOTION_PARAMS } from "./params.js";
+import { area, center, type Polygon } from "./fracture.js";
+import { impactBias, sampleImpulse } from "./impulse.js";
+import { defaultHudMessage, destroyedCountKey } from "./hud.js";
 
 const tuning = {
   ...DEFAULT_MOTION_PARAMS,
@@ -21,8 +21,8 @@ const renderState = vi.hoisted(() => ({
   dispose: vi.fn(),
   scenes: [] as Scene[],
 }));
-vi.mock("./renderer", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("./renderer")>();
+vi.mock("./renderer.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./renderer.js")>();
   return {
     ...actual,
     FractureRenderer: class {
@@ -47,8 +47,8 @@ vi.mock("./renderer", async (importOriginal) => {
     },
   };
 });
-vi.mock("./surface", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("./surface")>();
+vi.mock("./surface.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./surface.js")>();
   return {
     ...actual,
     captureSurface: vi.fn(),

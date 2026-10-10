@@ -1,4 +1,4 @@
-import { DEFAULT_FRACTURE_PARAMS, type FractureParams } from "./params";
+import { DEFAULT_FRACTURE_PARAMS, type FractureParams } from "./params.js";
 
 /** Convex polygons stay convex as cracks propagate, including recursive fractures. */
 export interface Point {

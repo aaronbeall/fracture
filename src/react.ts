@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from "react";
-import { createFractureStage, getFractureStage } from "./index";
-import { installEasterEgg, type EasterEggOptions } from "./easter-egg";
+import { createFractureStage, getFractureStage } from "./index.js";
+import { installEasterEgg, type EasterEggOptions } from "./easter-egg.js";
 import type {
   FractureElementOptions,
   FractureResult,
@@ -8,7 +8,7 @@ import type {
   PointLike,
   StageOptions,
   StrikeOptions,
-} from "./types";
+} from "./types.js";
 
 /** An element, a ref to one, or nothing (ignored). */
 export type FractureTarget = Element | { current: Element | null } | null;

@@ -6,13 +6,13 @@ import {
   fracture,
   rectangle,
   type Polygon,
-} from "./fracture";
-import { impulseFalloff, sampleImpulse } from "./impulse";
+} from "./fracture.js";
+import { impulseFalloff, sampleImpulse } from "./impulse.js";
 import {
   DEFAULT_FRACTURE_PARAMS,
   DEFAULT_IMPULSE_PARAMS,
   REFRACTURE_PARAMS,
-} from "./params";
+} from "./params.js";
 
 function random(seed = 17) {
   return () => {

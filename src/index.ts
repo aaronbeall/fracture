@@ -5,7 +5,7 @@ import type {
   PointLike,
   StageOptions,
   StrikeOptions,
-} from "./types";
+} from "./types.js";
 
 export type {
   FractureElementOptions,
@@ -14,8 +14,8 @@ export type {
   PointLike,
   StageOptions,
   StrikeOptions,
-} from "./types";
-export type { Point, Polygon } from "./fracture";
+} from "./types.js";
+export type { Point, Polygon } from "./fracture.js";
 export {
   DEFAULT_BLUR_PARAMS,
   DEFAULT_FRACTURE_PARAMS,
@@ -26,7 +26,7 @@ export {
   type FractureParams,
   type ImpulseParams,
   type MotionParams,
-} from "./params";
+} from "./params.js";
 
 /**
  * Create a fracture overlay. Three.js and DOM capture load on first call, so
@@ -37,7 +37,7 @@ export async function createFractureStage(
 ): Promise<FractureStage> {
   if (typeof document === "undefined")
     throw new Error("Fracture needs a browser document");
-  const { createStage } = await import("./stage");
+  const { createStage } = await import("./stage.js");
   return createStage(options);
 }
 

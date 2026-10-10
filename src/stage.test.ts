@@ -1,17 +1,17 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PerspectiveCamera, Scene } from "three";
-import { createStage, resolvePoint } from "./stage";
-import { captureSurface } from "./surface";
-import type { FractureStage } from "./types";
+import { createStage, resolvePoint } from "./stage.js";
+import { captureSurface } from "./surface.js";
+import type { FractureStage } from "./types.js";
 
 const renderState = vi.hoisted(() => ({
   blur: [] as unknown[],
   scenes: [] as Scene[],
   dispose: vi.fn(),
 }));
-vi.mock("./renderer", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("./renderer")>();
+vi.mock("./renderer.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./renderer.js")>();
   return {
     ...actual,
     FractureRenderer: class {
@@ -33,8 +33,8 @@ vi.mock("./renderer", async (importOriginal) => {
     },
   };
 });
-vi.mock("./surface", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("./surface")>()),
+vi.mock("./surface.js", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("./surface.js")>()),
   captureSurface: vi.fn(),
 }));
 

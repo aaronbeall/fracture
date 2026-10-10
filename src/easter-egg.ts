@@ -1,7 +1,7 @@
-import type { FractureEverythingOptions } from "./everything";
+import type { FractureEverythingOptions } from "./everything.js";
 
-export type { FractureEverythingOptions, SpeedControls } from "./everything";
-export type { HudOptions } from "./hud";
+export type { FractureEverythingOptions, SpeedControls } from "./everything.js";
+export type { HudOptions } from "./hud.js";
 
 /** Up, up, down, down, left, right, left, right, B, A. */
 export const KONAMI_CODE = [
@@ -52,7 +52,7 @@ export async function fractureEverything({
   () => void
 > {
   if (signal?.aborted || typeof document === "undefined") return () => {};
-  const { activate } = await import("./everything");
+  const { activate } = await import("./everything.js");
   if (signal?.aborted) return () => {};
   const dispose = activate(options);
   signal?.addEventListener("abort", dispose, { once: true });

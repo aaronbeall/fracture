@@ -1,7 +1,7 @@
-import { createHud, type HudOptions } from "./hud";
-import { createStage } from "./stage";
-import type { Point } from "./fracture";
-import type { StageOptions } from "./types";
+import { createHud, type HudOptions } from "./hud.js";
+import { createStage } from "./stage.js";
+import type { Point } from "./fracture.js";
+import type { StageOptions } from "./types.js";
 
 export interface SpeedControls {
   /** Factor applied per + / - press. */

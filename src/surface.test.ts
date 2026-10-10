@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { findSurface, hideSurface, opaqueAt } from "./surface";
+import { findSurface, hideSurface, opaqueAt } from "./surface.js";
 
 afterEach(() => {
   document.body.innerHTML = "";

@@ -1,5 +1,5 @@
 // Self-contained bundle for the extension and bookmarklet; running it again toggles the effect off.
-import { activate } from "./everything";
+import { activate } from "./everything.js";
 
 declare global {
   interface Window {

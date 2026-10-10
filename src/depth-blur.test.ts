@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { apertureKernel } from "./depth-blur";
+import { apertureKernel } from "./depth-blur.js";
 
 describe("circular aperture", () => {
   it.each([0, 0.001, 1, 2, 4, 5])(

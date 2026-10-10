@@ -1,5 +1,5 @@
 import { toCanvas } from "html-to-image";
-import type { Point } from "./fracture";
+import type { Point } from "./fracture.js";
 
 export const hiddenAttribute = "data-fracture-hidden";
 export const overlayAttribute = "data-fracture-overlay";
