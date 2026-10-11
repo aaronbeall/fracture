@@ -50,15 +50,36 @@ const icons = {
 
 interface Note {
   text: string;
+  description: string;
   icon: keyof typeof icons;
   color: string;
 }
 
 const initialNotes: Note[] = [
-  { text: "Your build passed", icon: "check", color: "#1a7f37" },
-  { text: "3 new comments on your PR", icon: "comment", color: "#1f4fd8" },
-  { text: "Disk space is running low", icon: "warning", color: "#e63312" },
-  { text: "Meeting moved to 3pm", icon: "calendar", color: "#b38f00" },
+  {
+    text: "Your build passed",
+    description: "All checks are green. This notification has served its purpose.",
+    icon: "check",
+    color: "#1a7f37",
+  },
+  {
+    text: "3 new comments on your PR",
+    description: "Two suggestions and one very strong opinion about semicolons.",
+    icon: "comment",
+    color: "#1f4fd8",
+  },
+  {
+    text: "Disk space is running low",
+    description: "Deleting this warning will free up absolutely no disk space.",
+    icon: "warning",
+    color: "#e63312",
+  },
+  {
+    text: "Meeting moved to 3pm",
+    description: "Same agenda. New time. An opportunity to clear your calendar.",
+    icon: "calendar",
+    color: "#b38f00",
+  },
 ];
 
 function Cards() {
@@ -69,7 +90,7 @@ function Cards() {
 
   async function dismiss(text: string, event: MouseEvent) {
     await fracture(refs.current.get(text) ?? null, { at: event });
-    // Let the burst start, then collapse the empty slot so rows slide up.
+    // Let the burst start, then collapse the empty slot so the cards reflow.
     setTimeout(() => setLeaving((current) => new Set(current).add(text)), 250);
   }
 
@@ -84,7 +105,7 @@ function Cards() {
 
   return (
     <div className="cards">
-      {notes.map(({ text, icon, color }) => (
+      {notes.map(({ text, description, icon, color }) => (
         <div
           key={text}
           className={`note-slot${leaving.has(text) ? " leaving" : ""}`}
@@ -93,7 +114,7 @@ function Cards() {
           }}
         >
           <div className="note-clip">
-            <div
+            <article
               className="note"
               style={{ "--tone": color } as React.CSSProperties}
               ref={(node) => {
@@ -104,11 +125,18 @@ function Cards() {
               <span className="note-icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24">{icons[icon]}</svg>
               </span>
-              <span className="note-text">{text}</span>
-              <button className="secondary" onClick={(e) => dismiss(text, e)}>
+              <div className="note-copy">
+                <h3>{text}</h3>
+                <p>{description}</p>
+              </div>
+              <button
+                className="secondary"
+                aria-label={`Dismiss: ${text}`}
+                onClick={(e) => dismiss(text, e)}
+              >
                 Dismiss
               </button>
-            </div>
+            </article>
           </div>
         </div>
       ))}

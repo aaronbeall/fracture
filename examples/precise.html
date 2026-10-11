@@ -20,7 +20,11 @@
         background: #16161699;
       }
       .cards {
-        margin-top: 8px;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: start;
+        gap: 16px;
+        margin-top: 20px;
       }
       /* Collapsing a 1fr -> 0fr grid row animates the slot's height. */
       .note-slot {
@@ -37,12 +41,14 @@
       }
       .note {
         display: flex;
-        align-items: center;
-        gap: 14px;
-        margin-bottom: 8px;
-        padding: 10px 10px 10px 10px;
-        background: color-mix(in srgb, var(--tone) 12%, var(--bg));
-        border-left: 3px solid var(--tone);
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 18px;
+        min-height: 248px;
+        padding: 24px;
+        background: color-mix(in srgb, var(--tone) 16%, var(--bg));
+        border: 1px solid color-mix(in srgb, var(--tone) 55%, var(--hair));
+        border-top: 3px solid var(--tone);
       }
       .note-icon {
         flex: none;
@@ -61,8 +67,28 @@
         stroke-width: 2;
         stroke-linecap: square;
       }
-      .note-text {
+      .note-copy {
         flex: 1;
+      }
+      .note-copy h3 {
+        font-size: 20px;
+        line-height: 1.25;
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+      .note-copy p {
+        max-width: 34ch;
+        margin: 0;
+        color: #c5c5c0;
+        font-size: 14px;
+      }
+      .note button {
+        margin-top: auto;
+      }
+      @media (max-width: 600px) {
+        .cards {
+          grid-template-columns: 1fr;
+        }
       }
       .slab {
         width: 260px;

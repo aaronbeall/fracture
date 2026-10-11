@@ -4,6 +4,8 @@ Ever wanted to fracture your UI into a million pieces and watch the bits
 beautifully disperse as if in a hallucinogenic trance? Good news, that's my
 specialty, and now you can too!
 
+[![Animation of a bright lime panel shattering into tumbling 3D fragments against the dark playground, with depth-of-field blur on the flying pieces.](docs/images/fracture-preview.gif)](https://aaronbeall.github.io/fracture/playground.html)
+
 ### [💥 Live demos →](https://aaronbeall.github.io/fracture/)
 
 ```sh
